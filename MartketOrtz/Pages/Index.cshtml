@@ -1,10 +1,16 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Minimarket ORTZ";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Bienvenido a MiniMarket Ortz</h1>
+    <p class="lead">Seleccione una opcion del sistema para comenzar:</p>
+
+    <div class="mt-4">
+        <a href="/GestionCategoria" class="btn btn-success btn-lg m-2">Gestión de Categorías</a>
+        <a href="/GestionProducto" class="btn btn-primary btn-lg m-2">Gestión de Productos</a>
+        <a href="/GestionVenta" class="btn btn-warning btn-lg m-2">Gestión de Ventas</a>
+    </div>
 </div>
