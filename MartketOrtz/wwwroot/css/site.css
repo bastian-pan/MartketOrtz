@@ -20,3 +20,50 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* weas del gestion venta*/
+
+.winform-container {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.winform-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 0px;
+    cursor: pointer;
+}
+
+.winform-btn:hover {
+    background-color: #009acd;
+}
+
+.winform-datagrid {
+    background-color: #a9a9a9;
+    min-height: 250px;
+    border: 2px inset #fff;
+    overflow-y: auto;
+}
+
+.winform-table {
+    background-color: white;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.winform-table th, .winform-table td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+}
+
+    .winform-table th {
+        background-color: #e0e0e0;
+        font-weight: normal;
+    }
