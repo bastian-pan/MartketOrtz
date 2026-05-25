@@ -1,5 +1,64 @@
 ﻿@page
 @model MartketOrtz.Pages.GestionProductoModel
 @{
-    ViewData["Tittle"] = "Gestion de Producto";
+    ViewData["Title"] = "Gestion de Producto";
 }
+
+<div class="container mt-4">
+    <h2>Gestión de Productos</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nombre del Producto</label>
+                        <input type="text" name="nombreProducto" class="form-control" placeholder="Ej: Bebida Cola 2L" required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Categoria</label>
+                        <select name="idCategoria" class="form-select" required>
+                            <option value="">Seleccione una categoria</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Precio ($)</label>
+                        <input type="number" name="precioProducto" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Stock Inicial</label>
+                        <input type="number" name="stockProducto" class="form-control" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Agregar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <hr />
+    <h3>Catálogo de Productos</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>ID Categoria</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="6" class="text-center text-muted">Proximamente chat</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

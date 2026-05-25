@@ -1,7 +1,48 @@
 ﻿@page
 @model MartketOrtz.Pages.GestionCategoriaModel
 @{
-    ViewData["Tittle"] = "Gestion de Categorias";
+    ViewData["Title"] = "Gestion de Categorias";
 }
+
+<div class="container mt-4">
+    <h2>Gestión de Categorías</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Nombre de la Categoría</label>
+                    <input type="text" name="nombreCategoria" class="form-control" placeholder="Ej: Lacteos" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <input type="text" name="descripcionCategoria" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Agregar Categoría</button>
+            </form>
+        </div>
+    </div>
+
+    <hr />
+    <h3>Lista de Categorias</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="4" class="text-center text-muted">Proximamente chavales</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 
