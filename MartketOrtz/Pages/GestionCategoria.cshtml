@@ -12,12 +12,12 @@
             <form method="post">
                 <div class="mb-3">
                     <label class="form-label">Nombre de la Categoría</label>
-                    <input type="text" name="nombreCategoria" class="form-control" placeholder="Ej: Lacteos" required />
+                    <input asp-for="Categoria.Nombre" type="text" name="nombreCategoria" class="form-control" placeholder="Ej: Lacteos" required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Descripción</label>
-                    <input type="text" name="descripcionCategoria" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
+                    <input asp-for="Categoria.Descripcion" type="text" name="descripcionCategoria" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Agregar Categoría</button>
@@ -38,9 +38,14 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td colspan="4" class="text-center text-muted">Proximamente chavales</td>
+            @foreach (var item in Model.Categoria)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Nombre</td>
+                    <td>@item.Descripcion</td>
             </tr>
+            }
         </tbody>
     </table>
 </div>

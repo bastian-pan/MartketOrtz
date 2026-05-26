@@ -1,3 +1,5 @@
+using MartketOrtz.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +7,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddSession();
 
+builder.Services.AddSingleton<DataBaseHelper>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
