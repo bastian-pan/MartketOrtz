@@ -13,7 +13,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Nombre del Producto</label>
-                        <input type="text" name="nombreProducto" class="form-control" placeholder="Ej: Bebida Cola 2L" required />
+                        <input asp-for="Producto.Nombre" type="text" name="nombreProducto" class="form-control" placeholder="Ej: Bebida Cola 2L" required />
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -27,12 +27,12 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Precio ($)</label>
-                        <input type="number" name="precioProducto" class="form-control" required />
+                        <input asp-for="Producto.Precio" type="number" name="precioProducto" class="form-control" required />
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Stock Inicial</label>
-                        <input type="number" name="stockProducto" class="form-control" required />
+                        <input asp-for="Producto.Stock" type="number" name="stockProducto" class="form-control" required />
                     </div>
                 </div>
 
@@ -56,9 +56,16 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td colspan="6" class="text-center text-muted">Proximamente chat</td>
-            </tr>
+            @foreach (var item in Model.Producto)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Nombre</td>
+                    <td>@item.Categoria</td>
+                    <td>@item.Precio</td>
+                    <td>@item.Stock</td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
