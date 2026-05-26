@@ -48,6 +48,21 @@ namespace MartketOrtz.Data
             }
         }
 
+        public async Task InsertVenta(DateTime Fecha, decimal Total , decimal IVA)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                string query = "INSERT INTO Ventas (Fecha, Total, IVA) VALUES (@Fecha, @Total, @IVA)";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Fecha", Fecha);
+                    cmd.Parameters.AddWithValue("@Total", Total);
+                    cmd.Parameters.AddWithValue("@IVA", IVA);
 
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
         }
+    }
 }
