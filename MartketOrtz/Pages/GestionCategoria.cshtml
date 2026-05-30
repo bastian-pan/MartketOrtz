@@ -1,5 +1,7 @@
 ﻿@page
 @model MartketOrtz.Pages.GestionCategoriaModel
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Gestion de Categorias";
 }
@@ -12,12 +14,12 @@
             <form method="post">
                 <div class="mb-3">
                     <label class="form-label">Nombre de la Categoría</label>
-                    <input asp-for="Categoria.Nombre" type="text" name="nombreCategoria" class="form-control" placeholder="Ej: Lacteos" required />
+                    <input asp-for="NuevaCategoria.Nombre" class="form-control" placeholder="Ej: Lacteos" required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Descripción</label>
-                    <input asp-for="Categoria.Descripcion" type="text" name="descripcionCategoria" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
+                    <input asp-for="NuevaCategoria.Descripcion" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Agregar Categoría</button>
@@ -38,7 +40,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Categoria)
+            @foreach (var item in Model.Categorias)
             {
                 <tr>
                     <td>@item.Id</td>

@@ -38,7 +38,7 @@ namespace MartketOrtz.Pages
 
         private void CargarDatos()
         {
-            Productos = Producto.ObtenerTodos();
+            
             Ventas = Venta.ObtenerVentas();
             Carrito = leerCarrito();
         }
@@ -96,10 +96,7 @@ namespace MartketOrtz.Pages
             });
 
             // Descontar Stock
-            foreach (var item in carrito)
-            {
-                Producto.DescontarStock(item.IdProduto, item.Cantidad);
-            }
+
 
             HttpContext.Session.Remove(SessionKey);
             return RedirectToPage();
