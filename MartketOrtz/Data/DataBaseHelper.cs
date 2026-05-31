@@ -12,7 +12,7 @@ namespace MartketOrtz.Data
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
         }
 
-        // ===== CATEGORIA =====
+        //CATEGORIA
 
         public async Task InsertCategoria(string nombre, string descripcion)
         {
@@ -87,7 +87,7 @@ namespace MartketOrtz.Data
             return null;
         }
 
-        // ===== PRODUCTO =====
+        //PRODUCTO
 
         public async Task InsertProducto(string nombre, int idCategoria, decimal precio, int stock)
         {
@@ -102,26 +102,28 @@ namespace MartketOrtz.Data
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task<List<Producto>> GetProductos()
+        public async Task<List<(Producto producto, string nombreCategoria)>> GetProductosConCategoria()
         {
-            List<Producto> productos = new List<Producto>();
+            var resultado = new List<(Producto, string)>();
             using SqlConnection conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
-            string query = "SELECT IdProducto, Nombre, Precio, Stock, IdCategoria FROM Producto";
+            string query = @"SELECT p.IdProducto, p.Nombre, p.Precio, p.Stock, p.IdCategoria, c.Nombre 
+                     FROM Producto p 
+                     INNER JOIN Categoria c ON p.IdCategoria = c.IdCategoria";
             using SqlCommand cmd = new SqlCommand(query, conn);
             using SqlDataReader reader = await cmd.ExecuteReaderAsync();
             while (reader.Read())
             {
-                productos.Add(new Producto
+                resultado.Add((new Producto
                 {
                     IdProducto = reader.GetInt32(0),
                     Nombre = reader.GetString(1),
                     Precio = reader.GetDecimal(2),
                     Stock = reader.GetInt32(3),
                     IdCategoria = reader.GetInt32(4)
-                });
+                }, reader.GetString(5)));
             }
-            return productos;
+            return resultado;
         }
 
         public async Task DeleteProducto(int id)
@@ -134,7 +136,7 @@ namespace MartketOrtz.Data
             await cmd.ExecuteNonQueryAsync();
         }
 
-        // ===== VENTA =====
+        // VENTA
 
         public async Task InsertVenta(DateTime fecha, decimal total, decimal iva)
         {
