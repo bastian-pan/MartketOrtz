@@ -1,5 +1,6 @@
 ﻿using MartketOrtz.Models;
 using System.Data.SqlClient;
+using Microsoft.AspNetCore.Hosting; // Agregado para leer la ruta del sistema
 
 namespace MartketOrtz.Data
 {
@@ -7,9 +8,13 @@ namespace MartketOrtz.Data
     {
         private readonly string _connectionString = string.Empty;
 
-        public DataBaseHelper(IConfiguration configuration)
+        // Modificamos el constructor para inyectar IWebHostEnvironment
+        public DataBaseHelper(IConfiguration configuration, IWebHostEnvironment env)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+            string rawConnectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+
+            // Reemplazamos |DataDirectory| por la ruta real de la carpeta del proyecto en la PC actual
+            _connectionString = rawConnectionString.Replace("|DataDirectory|", env.ContentRootPath);
         }
 
         //CATEGORIA
