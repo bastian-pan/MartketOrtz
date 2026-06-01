@@ -2,30 +2,31 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MartketOrtz.Models;
 using System.Text.Json;
+using MartketOrtz.Data;
 
 namespace MartketOrtz.Pages
 {
     public class GestionVentaModel : PageModel
     {
-        public List<Producto> Productos { get; set; } = new List<Producto>();
-        public List<DetalleVenta> Carrito { get; set; } = new List<DetalleVenta>();
-
-        public List<Venta> Ventas { get; set; } = new List<Venta>();
-
-        [BindProperty] public int IdProductoSeleccionado { get; set; }
-
-        [BindProperty] public int Cantidad { get; set; } = 1;
-
-        [BindProperty] public int? IndexEditar { get; set; }
-
-        [BindProperty] public int? IdVentaSeleccionada { get; set; }
-
-        [BindProperty] public decimal? NuevoTotal { get; set; }
-
-
+        private readonly DataBaseHelper _databaseHelper;
         private const string SessionKey = "Carrito";
 
-        private List<DetalleVenta> leerCarrito()
+        public GestionVentaModel(DataBaseHelper databaseHelper)
+        {
+            _databaseHelper = databaseHelper;
+        }
+
+        public List<(Producto producto, string nombreCategoria)> Productos { get; set; } = new();
+        public List<DetalleVenta> Carrito { get; set; } = new();
+        public List<Venta> Ventas { get; set; } = new();
+
+        [BindProperty] public int IdProductoSeleccionado { get; set; }
+        [BindProperty] public int Cantidad { get; set; } = 1;
+        [BindProperty] public int? IndexEditar { get; set; }
+        [BindProperty] public int? IdVentaSeleccionada { get; set; }
+        [BindProperty] public decimal? NuevoTotal { get; set; }
+
+        private List<DetalleVenta> LeerCarrito()
         {
             var json = HttpContext.Session.GetString(SessionKey);
             return string.IsNullOrEmpty(json) ? new List<DetalleVenta>() : JsonSerializer.Deserialize<List<DetalleVenta>>(json)!;
@@ -36,26 +37,37 @@ namespace MartketOrtz.Pages
             HttpContext.Session.SetString(SessionKey, JsonSerializer.Serialize(carrito));
         }
 
-        private void CargarDatos()
+        public async Task OnGetAsync()
         {
-            
-            Ventas = Venta.ObtenerVentas();
-            Carrito = leerCarrito();
+            Productos = await _databaseHelper.GetProductosConCategoria();
+            Ventas = await _databaseHelper.GetVentas();
+            Carrito = LeerCarrito();
         }
 
-        public void OnGet()
+        public async Task<JsonResult> OnGetProductoInfoAsync(int id)
         {
-            CargarDatos();
+            var productosDb = await _databaseHelper.GetProductosConCategoria();
+            var producto = productosDb.FirstOrDefault(p => p.producto.IdProducto == id).producto;
 
+            if (producto != null)
+            {
+                return new JsonResult(new { precio = producto.Precio, stock = producto.Stock });
+            }
+            return new JsonResult(null);
         }
-        public IActionResult OnPostAgregar()
+
+        // --- INSERT 1: AGREGAR AL CARRITO (FUNCIONANDO) ---
+        public async Task<IActionResult> OnPostAgregarAsync()
         {
-            CargarDatos();
-            var producto = Productos.FirstOrDefault(p => p.IdProducto == IdProductoSeleccionado);
+            if (IdProductoSeleccionado <= 0 || Cantidad <= 0) return RedirectToPage();
+
+            var productosDb = await _databaseHelper.GetProductosConCategoria();
+            var producto = productosDb.FirstOrDefault(p => p.producto.IdProducto == IdProductoSeleccionado).producto;
+
             if (producto == null) return RedirectToPage();
 
-            var carrito = leerCarrito();
-            var existente = carrito.FirstOrDefault(c => c.IdProduto == IdProductoSeleccionado);
+            var carrito = LeerCarrito();
+            var existente = carrito.FirstOrDefault(c => c.IdProducto == IdProductoSeleccionado);
 
             if (existente != null)
             {
@@ -65,7 +77,7 @@ namespace MartketOrtz.Pages
             {
                 carrito.Add(new DetalleVenta
                 {
-                    IdProduto = producto.IdProducto,
+                    IdProducto = producto.IdProducto,
                     NombreProducto = producto.Nombre,
                     Cantidad = Cantidad,
                     PrecioUnitario = producto.Precio
@@ -74,76 +86,49 @@ namespace MartketOrtz.Pages
 
             GuardarCarrito(carrito);
             return RedirectToPage();
-
-
-
         }
 
-        public IActionResult OnPostRegistrar()
+        // --- INSERT 2: REGISTRAR VENTA FINAL EN SQL (FUNCIONANDO) ---
+        public async Task<IActionResult> OnPostRegistrarAsync()
         {
-            var carrito = leerCarrito();
+            var carrito = LeerCarrito();
             if (carrito.Count == 0) return RedirectToPage();
 
             decimal total = carrito.Sum(x => x.SubTotal);
-            decimal iva = Math.Round(total - total / 1.19m, 2);
+            decimal iva = carrito.Sum(x => x.IVA);
 
-            // Guardar Venta
-            Venta.Agregar(new Venta
-            {
-                Fecha = DateTime.Now,
-                Total = total,
-                IVA = iva
-            });
-
-            // Descontar Stock
-
+            await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
 
             HttpContext.Session.Remove(SessionKey);
+            return RedirectToPage();
+        }
+
+        // =====================================================================
+        // MÉTODOS VACÍOS (SOLO RECARGAN LA PÁGINA COMO PEDISTE)
+        // =====================================================================
+
+        public IActionResult OnPostEliminarItem()
+        {
             return RedirectToPage();
         }
 
         public IActionResult OnPostCancelar()
         {
-            HttpContext.Session.Remove(SessionKey);
             return RedirectToPage();
         }
 
-        public IActionResult OnPostEliminarItem()
-        {
-            if (IndexEditar.HasValue)
-            {
-                var carrito = leerCarrito();
-                if (IndexEditar.Value >= 0 && IndexEditar.Value < carrito.Count)
-                {
-                    carrito.RemoveAt(IndexEditar.Value);
-                    GuardarCarrito(carrito);
-                }
-            }
-            return RedirectToPage();
-        }
-
-        // Dejo preparados los métodos vacíos o básicos para que no te tire error el HTML
         public IActionResult OnPostEditar()
         {
-            // Lógica de edición pendiente
             return RedirectToPage();
         }
 
         public IActionResult OnPostEliminarVenta()
         {
-            if (IdVentaSeleccionada.HasValue)
-            {
-                Venta.Eliminar(IdVentaSeleccionada.Value);
-            }
             return RedirectToPage();
         }
 
         public IActionResult OnPostActualizarVenta()
         {
-            if (IdVentaSeleccionada.HasValue && NuevoTotal.HasValue)
-            {
-                Venta.Actualizar(IdVentaSeleccionada.Value, NuevoTotal.Value);
-            }
             return RedirectToPage();
         }
     }
