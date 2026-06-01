@@ -56,7 +56,7 @@ namespace MartketOrtz.Pages
             return new JsonResult(null);
         }
 
-        // --- INSERT 1: AGREGAR AL CARRITO (FUNCIONANDO) ---
+        //  INSERT 1: AGREGAR AL CARRITO 
         public async Task<IActionResult> OnPostAgregarAsync()
         {
             if (IdProductoSeleccionado <= 0 || Cantidad <= 0) return RedirectToPage();
@@ -88,7 +88,7 @@ namespace MartketOrtz.Pages
             return RedirectToPage();
         }
 
-        // --- INSERT 2: REGISTRAR VENTA FINAL EN SQL (FUNCIONANDO) ---
+        // INSERT 2: REGISTRAR VENTA FINAL EN SQL 
         public async Task<IActionResult> OnPostRegistrarAsync()
         {
             var carrito = LeerCarrito();
@@ -102,10 +102,6 @@ namespace MartketOrtz.Pages
             HttpContext.Session.Remove(SessionKey);
             return RedirectToPage();
         }
-
-        // =====================================================================
-        // MÉTODOS VACÍOS (SOLO RECARGAN LA PÁGINA COMO PEDISTE)
-        // =====================================================================
 
         public IActionResult OnPostEliminarItem()
         {
