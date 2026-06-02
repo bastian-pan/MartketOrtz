@@ -46,7 +46,13 @@
                     <td>@cat.Id</td>
                     <td>@cat.Nombre</td>
                     <td>@cat.Descripcion</td>
-                    <td>Para la otra presentacion :V</td>
+                    <td>
+                        <a asp-page="./Editar" asp-route="@cat.Id" class="btn btn-primary">Editar</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="cat.Id" style="display:inline;">
+                            <button type="submit" class"btn btn-danger">Eliminar</button>
+                        </form>    
+
+                    </td>
             </tr>
             }
         </tbody>
