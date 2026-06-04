@@ -69,9 +69,11 @@
                     <td>@item.producto.Precio</td>
                     <td>@item.producto.Stock</td>
                     <td>
-                        <form method="post" asp-page-handler="Delete" style="display:inline;">
-                            <input type="hidden" name="id" value="@item.producto.IdProducto" />
+                        <a asp-page="./EditarProducto" asp-route="@item.producto.IdProducto" class="btn btn-primary">Editar</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="item.producto.IdProducto" style="display:inline;">
+                            <button type="submit" class"btn btn-danger">Eliminar</button>
                         </form>
+
                     </td>
                 </tr>
             }

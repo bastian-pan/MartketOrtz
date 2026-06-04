@@ -7,7 +7,7 @@
         public int Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
 
-        // Se calculan automáticamente, por lo que no darán error de asignación
+        
         public decimal SubTotal => Cantidad * PrecioUnitario;
         public decimal IVA => Math.Round(SubTotal - (SubTotal / 1.19m), 2);
     }

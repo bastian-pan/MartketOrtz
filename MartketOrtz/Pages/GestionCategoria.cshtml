@@ -40,12 +40,19 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Categorias)
+            @foreach (var cat in Model.Categorias)
             {
                 <tr>
-                    <td>@item.Id</td>
-                    <td>@item.Nombre</td>
-                    <td>@item.Descripcion</td>
+                    <td>@cat.Id</td>
+                    <td>@cat.Nombre</td>
+                    <td>@cat.Descripcion</td>
+                    <td>
+                        <a asp-page="./Editar" asp-route="@cat.Id" class="btn btn-primary">Editar</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="cat.Id" style="display:inline;">
+                            <button type="submit" class"btn btn-danger">Eliminar</button>
+                        </form>    
+
+                    </td>
             </tr>
             }
         </tbody>
