@@ -1,67 +1,289 @@
+
+:root {
+    --ortz-blue: #00AAFF;
+    --ortz-blue-dark: #0077CC;
+    --ortz-blue-darker: #0A1628;
+    --ortz-blue-mid: #1a3a5c;
+    --ortz-gold: #FFD700;
+    --ortz-white: #FFFFFF;
+    --ortz-light: #EAF5FF;
+    --ortz-radius: 12px;
+    --ortz-radius-sm: 8px;
+}
+
+* {
+    font-family: 'Nunito', sans-serif;
+}
+
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    background-color: #f0f7ff;
+    color: #1a2a3a;
+    margin-bottom: 0;
 }
 
-.winform-container {
-    background-color: #f0f0f0;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+
+.ortz-navbar {
+    background: linear-gradient(135deg, var(--ortz-blue-darker) 0%, var(--ortz-blue-mid) 100%);
+    padding: 10px 0;
+    box-shadow: 0 3px 15px rgba(0,170,255,0.25);
+    border-bottom: 2px solid var(--ortz-blue);
 }
 
-.winform-btn {
-    background-color: #007bff;
-    color: white;
+.ortz-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.ortz-logo {
+    height: 48px;
+    width: 48px;
+    object-fit: contain;
+    border-radius: 0;
     border: none;
-    padding: 10px;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 0px;
-    cursor: pointer;
+    background: transparent;
+    padding: 0;
 }
 
-.winform-btn:hover {
-    background-color: #009acd;
+.ortz-brand-text {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
-.winform-datagrid {
-    background-color: #a9a9a9;
-    min-height: 250px;
-    border: 2px inset #fff;
-    overflow-y: auto;
-}
-
-.winform-table {
-    background-color: white;
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.winform-table th, .winform-table td {
-    border: 1px solid #ccc;
-    padding: 4px 8px;
-}
-
-    .winform-table th {
-        background-color: #e0e0e0;
-        font-weight: normal;
+    .ortz-brand-text strong {
+        color: var(--ortz-blue);
+        font-weight: 800;
     }
+
+.ortz-nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    padding: 6px 14px !important;
+    border-radius: var(--ortz-radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+    .ortz-nav-link:hover {
+        background: rgba(0,170,255,0.2);
+        color: #fff !important;
+    }
+
+.ortz-toggler {
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1.3rem;
+    padding: 4px 10px;
+    background: transparent;
+}
+
+    .ortz-toggler:hover {
+        background: rgba(0,170,255,0.2);
+    }
+
+
+.ortz-page-wrapper {
+    min-height: calc(100vh - 140px);
+}
+
+
+.ortz-footer {
+    background: var(--ortz-blue-darker);
+    color: #fff;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+
+.card {
+    border: none;
+    border-radius: var(--ortz-radius);
+    box-shadow: 0 2px 12px rgba(0,100,200,0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--ortz-blue-darker), var(--ortz-blue-mid));
+    color: #fff;
+    border-radius: var(--ortz-radius) var(--ortz-radius) 0 0 !important;
+    font-weight: 700;
+    padding: 12px 18px;
+    border: none;
+}
+
+.card-body {
+    background: #fff;
+    border-radius: 0 0 var(--ortz-radius) var(--ortz-radius);
+    padding: 20px;
+}
+
+
+.table {
+    border-radius: var(--ortz-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,100,200,0.08);
+}
+
+    .table thead.table-dark th {
+        background: var(--ortz-blue-darker) !important;
+        color: var(--ortz-blue) !important;
+        font-weight: 700;
+        border: none;
+        padding: 12px 16px;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--ortz-light) !important;
+    }
+
+    .table td {
+        padding: 10px 16px;
+        vertical-align: middle;
+        border-color: #e0eef8;
+    }
+
+
+.btn {
+    border-radius: var(--ortz-radius-sm);
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--ortz-blue-dark);
+    border-color: var(--ortz-blue-dark);
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background: var(--ortz-blue);
+        border-color: var(--ortz-blue);
+        transform: translateY(-1px);
+    }
+
+.btn-warning {
+    background: #f0a500;
+    border-color: #f0a500;
+    color: #fff;
+}
+
+    .btn-warning:hover {
+        background: #FFD700;
+        border-color: #FFD700;
+        color: #1a2a3a;
+        transform: translateY(-1px);
+    }
+
+.btn-danger {
+    background: #cc2200;
+    border-color: #cc2200;
+}
+
+    .btn-danger:hover {
+        background: #ff3311;
+        border-color: #ff3311;
+        transform: translateY(-1px);
+    }
+
+.btn-success {
+    background: #0a8a50;
+    border-color: #0a8a50;
+}
+
+    .btn-success:hover {
+        background: #0cb868;
+        border-color: #0cb868;
+        transform: translateY(-1px);
+    }
+
+
+.form-control, .form-select {
+    border-radius: var(--ortz-radius-sm);
+    border: 1.5px solid #b8d8f0;
+    transition: all 0.2s;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--ortz-blue);
+        box-shadow: 0 0 0 3px rgba(0,170,255,0.2);
+    }
+
+.form-label {
+    font-weight: 700;
+    color: var(--ortz-blue-mid);
+    font-size: 0.875rem;
+}
+
+
+h2, h3 {
+    color: var(--ortz-blue-darker);
+    font-weight: 800;
+}
+
+    h2::after {
+        content: '';
+        display: block;
+        width: 48px;
+        height: 4px;
+        background: var(--ortz-blue);
+        border-radius: 2px;
+        margin-top: 6px;
+        margin-bottom: 16px;
+    }
+
+
+.alert-danger {
+    background: #fff0ee;
+    border-left: 4px solid #cc2200;
+    border-radius: var(--ortz-radius-sm);
+    color: #7a1100;
+}
+
+
+.modal-content {
+    border: none;
+    border-radius: var(--ortz-radius);
+    box-shadow: 0 8px 40px rgba(0,100,200,0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--ortz-blue-darker), var(--ortz-blue-mid));
+    color: #fff;
+    border: none;
+}
+
+    .modal-header .btn-close {
+        filter: invert(1);
+    }
+
+.modal-title {
+    font-weight: 800;
+    color: #fff;
+}
+
+.modal-footer {
+    border-top: 1px solid #e0eef8;
+    background: #f8fbff;
+}
+
+
+.btn:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(0,170,255,0.25);
+}

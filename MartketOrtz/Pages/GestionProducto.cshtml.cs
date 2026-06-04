@@ -28,6 +28,9 @@ namespace MartketOrtz.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (string.IsNullOrEmpty(NuevoProducto.Nombre) || NuevoProducto.IdCategoria == 0 || NuevoProducto.Precio <= 0 || NuevoProducto.Stock < 0)
+                return RedirectToPage();
+
             await _databaseHelper.InsertProducto(
                 NuevoProducto.Nombre,
                 NuevoProducto.IdCategoria,
@@ -40,6 +43,12 @@ namespace MartketOrtz.Pages
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             await _databaseHelper.DeleteProducto(id);
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostUpdateAsync(int idProducto, string nombre, int idCategoria, decimal precio, int stock)
+        {
+            await _databaseHelper.UpdateProducto(idProducto, nombre, idCategoria, precio, stock);
             return RedirectToPage();
         }
     }

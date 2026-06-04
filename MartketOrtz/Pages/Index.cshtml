@@ -4,13 +4,110 @@
     ViewData["Title"] = "Minimarket ORTZ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bienvenido a MiniMarket Ortz</h1>
-    <p class="lead">Seleccione una opcion del sistema para comenzar:</p>
+<div class="ortz-hero text-center mb-5">
+    <img src="~/images/logo.png" alt="Mascota Ortz" class="ortz-hero-logo" />
+    <h1 class="ortz-hero-title">Bienvenido a <span>MiniMarket Ortz</span></h1>
+    <p class="ortz-hero-subtitle">Sistema de gestión de tu minimarket — rápido, fácil y confiable</p>
+</div>
 
-    <div class="mt-4">
-        <a href="/GestionCategoria" class="btn btn-success btn-lg m-2">Gestión de Categorias</a>
-        <a href="/GestionProducto" class="btn btn-primary btn-lg m-2">Gestión de Productos</a>
-        <a href="/GestionVenta" class="btn btn-warning btn-lg m-2">Gestión de Ventas</a>
+<div class="row g-4 justify-content-center mb-4">
+    <div class="col-md-4">
+        <a href="/GestionCategoria" class="ortz-menu-card text-decoration-none">
+            <div class="ortz-menu-icon">🏷️</div>
+            <div class="ortz-menu-label">Gestión de Categorías</div>
+            <div class="ortz-menu-desc">Organiza y administra las categorías de tus productos</div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/GestionProducto" class="ortz-menu-card text-decoration-none">
+            <div class="ortz-menu-icon">📦</div>
+            <div class="ortz-menu-label">Gestión de Productos</div>
+            <div class="ortz-menu-desc">Agrega, edita y controla el stock de tus productos</div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/GestionVenta" class="ortz-menu-card text-decoration-none">
+            <div class="ortz-menu-icon">🛒</div>
+            <div class="ortz-menu-label">Gestión de Ventas</div>
+            <div class="ortz-menu-desc">Registra y revisa el historial de ventas del local</div>
+        </a>
     </div>
 </div>
+
+<style>
+    ..ortz-hero {
+        padding: 0.5rem 1rem 0.5rem;
+    }
+
+    .ortz-hero-logo {
+        height: 220px;
+        width: 220px;
+        object-fit: contain;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        padding: 0;
+        box-shadow: none;
+        margin-bottom: 0.5rem;
+    }
+
+    .ortz-hero-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--ortz-blue-darker);
+        margin-bottom: 8px;
+    }
+
+        .ortz-hero-title::after {
+            display: none;
+        }
+
+        .ortz-hero-title span {
+            color: var(--ortz-blue-dark);
+        }
+
+    .ortz-hero-subtitle {
+        color: #5a7a9a;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .ortz-menu-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background: #fff;
+        border-radius: var(--ortz-radius);
+        padding: 2rem 1.5rem;
+        box-shadow: 0 2px 16px rgba(0,100,200,0.1);
+        border: 2px solid transparent;
+        transition: all 0.25s;
+        height: 100%;
+    }
+
+        .ortz-menu-card:hover {
+            border-color: var(--ortz-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 28px rgba(0,150,255,0.2);
+        }
+
+    .ortz-menu-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        line-height: 1;
+    }
+
+    .ortz-menu-label {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--ortz-blue-darker);
+        margin-bottom: 6px;
+    }
+
+    .ortz-menu-desc {
+        font-size: 0.85rem;
+        color: #6a8aaa;
+        font-weight: 600;
+    }
+</style>

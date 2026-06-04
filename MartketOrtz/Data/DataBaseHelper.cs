@@ -50,6 +50,19 @@ namespace MartketOrtz.Data
             return categorias;
         }
 
+        //verificar que no hayan productos activos con esa categoria
+        public async Task<bool> CategoriaHasProductos(int id)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "SELECT COUNT(*) FROM Producto WHERE IdCategoria = @Id";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+            int count = (int)await cmd.ExecuteScalarAsync();
+            return count > 0;
+        }
+
+
         public async Task DeleteCategoria(int id)
         {
             using SqlConnection conn = new SqlConnection(_connectionString);
@@ -137,6 +150,20 @@ namespace MartketOrtz.Data
             await conn.OpenAsync();
             string query = "DELETE FROM Producto WHERE IdProducto = @Id";
             using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task UpdateProducto(int id, string nombre, int idCategoria, decimal precio, int stock)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "UPDATE Producto SET Nombre = @Nombre, IdCategoria = @IdCategoria, Precio = @Precio, Stock = @Stock WHERE IdProducto = @Id";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Nombre", nombre);
+            cmd.Parameters.AddWithValue("@IdCategoria", idCategoria);
+            cmd.Parameters.AddWithValue("@Precio", precio);
+            cmd.Parameters.AddWithValue("@Stock", stock);
             cmd.Parameters.AddWithValue("@Id", id);
             await cmd.ExecuteNonQueryAsync();
         }

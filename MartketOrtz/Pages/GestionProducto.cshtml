@@ -4,6 +4,14 @@
     ViewData["Title"] = "Gestion de Producto";
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="container mt-4">
     <h2>Gestión de Productos</h2>
 
@@ -15,7 +23,6 @@
                         <label class="form-label">Nombre del Producto</label>
                         <input asp-for="NuevoProducto.Nombre" class="form-control" placeholder="Ej: Bebida Cola 2L" required />
                     </div>
-
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Categoría</label>
                         <select asp-for="NuevoProducto.IdCategoria" class="form-select" required>
@@ -27,19 +34,16 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Precio ($)</label>
                         <input asp-for="NuevoProducto.Precio" type="number" step="0.01" class="form-control" required />
                     </div>
-
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Stock Inicial</label>
                         <input asp-for="NuevoProducto.Stock" type="number" class="form-control" required />
                     </div>
                 </div>
-
                 <button type="submit" class="btn btn-primary">Agregar Producto</button>
             </form>
         </div>
@@ -69,14 +73,70 @@
                     <td>@item.producto.Precio</td>
                     <td>@item.producto.Stock</td>
                     <td>
-                        <a asp-page="./EditarProducto" asp-route="@item.producto.IdProducto" class="btn btn-primary">Editar</a>
-                        <form method="post" asp-page-handler="Delete" asp-route-id="item.producto.IdProducto" style="display:inline;">
-                            <button type="submit" class"btn btn-danger">Eliminar</button>
+                        <button class="btn btn-warning btn-sm"
+                                onclick="abrirModalProducto(@item.producto.IdProducto, '@item.producto.Nombre', @item.producto.IdCategoria, @item.producto.Precio, @item.producto.Stock)">
+                            Editar
+                        </button>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@item.producto.IdProducto" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                         </form>
-
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+
+<div class="modal fade" id="modalEditarProducto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Update">
+                <div class="modal-body">
+                    <input type="hidden" id="editProdId" name="IdProducto" />
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="editProdNombre" name="Nombre" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select id="editProdCategoria" name="IdCategoria" class="form-select" required>
+                            @foreach (var cat in Model.Categorias)
+                            {
+                                <option value="@cat.Id">@cat.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio ($)</label>
+                        <input type="number" step="0.01" id="editProdPrecio" name="Precio" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" id="editProdStock" name="Stock" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function abrirModalProducto(id, nombre, idCategoria, precio, stock) {
+            document.getElementById('editProdId').value = id;
+            document.getElementById('editProdNombre').value = nombre;
+            document.getElementById('editProdCategoria').value = idCategoria;
+            document.getElementById('editProdPrecio').value = precio;
+            document.getElementById('editProdStock').value = stock;
+            new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
+        }
+    </script>
+}

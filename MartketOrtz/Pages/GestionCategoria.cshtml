@@ -1,9 +1,16 @@
 ﻿@page
 @model MartketOrtz.Pages.GestionCategoriaModel
-
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Gestion de Categorias";
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 
 <div class="container mt-4">
@@ -16,12 +23,10 @@
                     <label class="form-label">Nombre de la Categoría</label>
                     <input asp-for="NuevaCategoria.Nombre" class="form-control" placeholder="Ej: Lacteos" required />
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label">Descripción</label>
                     <input asp-for="NuevaCategoria.Descripcion" class="form-control" placeholder="Ej: Leches, quesos, yogures..." required />
                 </div>
-
                 <button type="submit" class="btn btn-primary">Agregar Categoría</button>
             </form>
         </div>
@@ -47,16 +52,56 @@
                     <td>@cat.Nombre</td>
                     <td>@cat.Descripcion</td>
                     <td>
-                        <a asp-page="./Editar" asp-route="@cat.Id" class="btn btn-primary">Editar</a>
-                        <form method="post" asp-page-handler="Delete" asp-route-id="cat.Id" style="display:inline;">
-                            <button type="submit" class"btn btn-danger">Eliminar</button>
-                        </form>    
-
+                        <button class="btn btn-warning btn-sm"
+                                onclick="abrirModalCategoria(@cat.Id, '@cat.Nombre', '@cat.Descripcion')">
+                            Editar
+                        </button>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@cat.Id" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
                     </td>
-            </tr>
+                </tr>
             }
         </tbody>
     </table>
 </div>
 
 
+<div class="modal fade" id="modalEditarCategoria" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Update">
+                <div class="modal-body">
+                    <input type="hidden" id="editCatId" name="Id" />
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="editCatNombre" name="Nombre" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" id="editCatDescripcion" name="Descripcion" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function abrirModalCategoria(id, nombre, descripcion) {
+            document.getElementById('editCatId').value = id;
+            document.getElementById('editCatNombre').value = nombre;
+            document.getElementById('editCatDescripcion').value = descripcion;
+            new bootstrap.Modal(document.getElementById('modalEditarCategoria')).show();
+        }
+    </script>
+}
