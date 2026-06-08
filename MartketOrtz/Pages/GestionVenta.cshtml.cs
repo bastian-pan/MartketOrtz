@@ -56,7 +56,7 @@ namespace MartketOrtz.Pages
             return new JsonResult(null);
         }
 
-        //  INSERT 1: AGREGAR AL CARRITO 
+        // --- ACCIÓN: AGREGAR AL CARRITO ---
         public async Task<IActionResult> OnPostAgregarAsync()
         {
             if (IdProductoSeleccionado <= 0 || Cantidad <= 0) return RedirectToPage();
@@ -88,7 +88,57 @@ namespace MartketOrtz.Pages
             return RedirectToPage();
         }
 
-        // INSERT 2: REGISTRAR VENTA FINAL EN SQL 
+        // --- ACCIÓN: ELIMINAR UN ÍTEM DEL CARRITO ---
+        public IActionResult OnPostEliminarItem()
+        {
+            if (IndexEditar.HasValue)
+            {
+                var carrito = LeerCarrito();
+                if (IndexEditar.Value >= 0 && IndexEditar.Value < carrito.Count)
+                {
+                    carrito.RemoveAt(IndexEditar.Value);
+                    GuardarCarrito(carrito);
+                }
+            }
+            return RedirectToPage();
+        }
+
+        // --- ACCIÓN: VACIAR TODO EL CARRITO (CANCELAR) ---
+        public IActionResult OnPostCancelar()
+        {
+            HttpContext.Session.Remove(SessionKey);
+            return RedirectToPage();
+        }
+
+        // --- ACCIÓN: EDITAR ÍTEM DEL CARRITO ---
+        public async Task<IActionResult> OnPostEditarAsync()
+        {
+            if (IndexEditar.HasValue)
+            {
+                var carrito = LeerCarrito();
+                if (IndexEditar.Value >= 0 && IndexEditar.Value < carrito.Count)
+                {
+                    var item = carrito[IndexEditar.Value];
+
+                    // Devolvemos los valores al formulario superior
+                    IdProductoSeleccionado = item.IdProducto;
+                    Cantidad = item.Cantidad;
+
+                    // Lo removemos temporalmente de la lista para que al "Agregar" no se duplique
+                    carrito.RemoveAt(IndexEditar.Value);
+                    GuardarCarrito(carrito);
+
+                    // Recargamos colecciones antes de renderizar la página actual
+                    Productos = await _databaseHelper.GetProductosConCategoria();
+                    Ventas = await _databaseHelper.GetVentas();
+                    Carrito = carrito;
+                    return Page();
+                }
+            }
+            return RedirectToPage();
+        }
+
+        // --- ACCIÓN: REGISTRAR VENTA EN SQL Y DESCONTAR STOCK ---
         public async Task<IActionResult> OnPostRegistrarAsync()
         {
             var carrito = LeerCarrito();
@@ -97,36 +147,40 @@ namespace MartketOrtz.Pages
             decimal total = carrito.Sum(x => x.SubTotal);
             decimal iva = carrito.Sum(x => x.IVA);
 
+            // 1. Guarda el registro de la venta general
             await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
+
+            // 2. Descuenta las unidades correspondientes de cada producto vendido
+            foreach (var item in carrito)
+            {
+                await _databaseHelper.RestarStockProducto(item.IdProducto, item.Cantidad);
+            }
 
             HttpContext.Session.Remove(SessionKey);
             return RedirectToPage();
         }
 
-        public IActionResult OnPostEliminarItem()
+        // --- ACCIÓN: ELIMINAR UNA VENTA DEL HISTORIAL ---
+        public async Task<IActionResult> OnPostEliminarVentaAsync()
         {
+            if (IdVentaSeleccionada.HasValue)
+            {
+                await _databaseHelper.DeleteVenta(IdVentaSeleccionada.Value);
+            }
             return RedirectToPage();
         }
 
-        public IActionResult OnPostCancelar()
+        // --- ACCIÓN: ACTUALIZAR EL MONTO DE UNA VENTA REALIZADA ---
+        public async Task<IActionResult> OnPostActualizarVentaAsync()
         {
-            return RedirectToPage();
-        }
+            if (IdVentaSeleccionada.HasValue && NuevoTotal.HasValue)
+            {
+                // Recalculamos el IVA en base al nuevo valor ingresado
+                decimal nuevoIva = Math.Round(NuevoTotal.Value - (NuevoTotal.Value / 1.19m), 2);
 
-        public IActionResult OnPostEditar()
-        {
+                await _databaseHelper.UpdateVenta(IdVentaSeleccionada.Value, NuevoTotal.Value, nuevoIva);
+            }
             return RedirectToPage();
         }
-
-        public IActionResult OnPostEliminarVenta()
-        {
-            return RedirectToPage();
-        }
-
-        public IActionResult OnPostActualizarVenta()
-        {
-            return RedirectToPage();
-        }
-        //as
     }
 }

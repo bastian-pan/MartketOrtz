@@ -212,5 +212,34 @@ namespace MartketOrtz.Data
             cmd.Parameters.AddWithValue("@Id", id);
             await cmd.ExecuteNonQueryAsync();
         }
+
+
+        public async Task UpdateVenta(int id, decimal total, decimal iva)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "UPDATE venta SET Total = @Total, IVA = @IVA WHERE IdVenta = @Id";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Total", total);
+            cmd.Parameters.AddWithValue("@IVA", iva);
+            cmd.Parameters.AddWithValue("@Id", id);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task RestarStockProducto(int idProducto, int cantidadVendida)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            // La consulta toma el Stock actual y le resta la cantidad que le pasemos
+            string query = "UPDATE Producto SET Stock = Stock - @Cantidad WHERE IdProducto = @Id";
+
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Cantidad", cantidadVendida);
+            cmd.Parameters.AddWithValue("@Id", idProducto);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
     }
 }
