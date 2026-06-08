@@ -19,24 +19,35 @@
                         <img src="~/images/logo.png" alt="Ortz" class="ortz-logo" />
                         <span class="ortz-brand-text">MiniMarket <strong>Ortz</strong></span>
                     </a>
-                    <button class="navbar-toggler ortz-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navOrtz">
-                        ☰
-                    </button>
-                    <div class="d-none d-lg-flex gap-1">
-                        <a class="ortz-nav-link" asp-area="" asp-page="/Index">🏠 Inicio</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionCategoria">🏷️ Categorías</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionProducto">📦 Productos</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionVenta">🛒 Ventas</a>
-                    </div>
+
+                    @if (ViewData["HideNav"] as bool? != true)
+                    {
+                        <button class="navbar-toggler ortz-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navOrtz">
+                            ☰
+                        </button>
+
+                        <div class="d-none d-lg-flex gap-1 align-items-center">
+                            <a class="ortz-nav-link" asp-area="" asp-page="/Index">🏠 Inicio</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionCategoria">🏷️ Categorías</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionProducto">📦 Productos</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionVenta">🛒 Ventas</a>
+                            <a class="ortz-nav-link text-danger fw-bold ms-3" asp-area="" asp-page="/Logout">🚪 Cerrar Sesión</a>
+                        </div>
+                    }
                 </div>
-                <div class="collapse d-lg-none" id="navOrtz">
-                    <div class="d-flex flex-column py-2 gap-1">
-                        <a class="ortz-nav-link" asp-area="" asp-page="/Index">🏠 Inicio</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionCategoria">🏷️ Categorías</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionProducto">📦 Productos</a>
-                        <a class="ortz-nav-link" asp-area="" asp-page="/GestionVenta">🛒 Ventas</a>
+
+                @if (ViewData["HideNav"] as bool? != true)
+                {
+                    <div class="collapse d-lg-none" id="navOrtz">
+                        <div class="d-flex flex-column py-2 gap-1">
+                            <a class="ortz-nav-link" asp-area="" asp-page="/Index">🏠 Inicio</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionCategoria">🏷️ Categorías</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionProducto">📦 Productos</a>
+                            <a class="ortz-nav-link" asp-area="" asp-page="/GestionVenta">🛒 Ventas</a>
+                            <a class="ortz-nav-link text-danger fw-bold" asp-area="" asp-page="/Logout">🚪 Cerrar Sesión</a>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </nav>
     </header>

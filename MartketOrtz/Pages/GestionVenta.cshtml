@@ -63,7 +63,7 @@
                             {
                                 <tr>
                                     <td class="text-center">
-                                        <input class="form-check-input" type="radio" name="IndexEditar" value="@index" required />
+                                        <input class="form-check-input" type="radio" name="IndexEditar" value="@index" />
                                     </td>
                                     <td>@item.NombreProducto</td>
                                     <td>@item.Cantidad</td>
@@ -108,17 +108,17 @@
                         <label class="col-form-label fw-bold">Actualizar Total ($):</label>
                     </div>
                     <div class="col">
-                        <input type="number" step="0.01" class="form-control" asp-for="NuevoTotal" />
+                        <input type="number" step="0.01" class="form-control" id="txtNuevoTotal" asp-for="NuevoTotal" />
                     </div>
                     <div class="col-auto">
-                        <button type="submit" asp-page-handler="ActualizarVenta" class="btn btn-info text-white">Actualizar Venta</button>
+                        <button type="submit" asp-page-handler="ActualizarVenta" id="btnActualizarVenta" class="btn btn-info text-white" formnovalidate>Actualizar Venta</button>
                     </div>
                 </div>
 
                 <table class="table table-bordered table-striped table-sm">
                     <thead class="table-dark">
                         <tr>
-                            <th class="text-center">*</th>
+                            <th class="text-center"><input type="checkbox" id="chkSeleccionarTodas" class="form-check-input" /></th>
                             <th>Id Venta</th>
                             <th>Fecha</th>
                             <th>Total</th>
@@ -132,7 +132,7 @@
                             {
                                 <tr>
                                     <td class="text-center">
-                                        <input class="form-check-input" type="radio" name="IdVentaSeleccionada" value="@v.IdVenta" required />
+                                        <input class="form-check-input chkVenta" type="checkbox" name="IdsVentasSeleccionadas" value="@v.IdVenta" data-total="@v.Total.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" />
                                     </td>
                                     <td>@v.IdVenta</td>
                                     <td>@v.Fecha.ToString("dd/MM/yyyy")</td>
@@ -149,7 +149,7 @@
                 </table>
 
                 <div class="mt-3 text-start">
-                    <button type="submit" asp-page-handler="EliminarVenta" class="btn btn-danger">
+                    <button type="submit" asp-page-handler="EliminarVenta" class="btn btn-danger" formnovalidate>
                         Eliminar Venta
                     </button>
                 </div>
@@ -160,6 +160,7 @@
 
 @section Scripts {
     <script>
+        // info del precio y cantidad
         document.getElementById('seleccionarProducto').addEventListener('change', function() {
             var productId = this.value;
             if (productId) {
@@ -176,6 +177,57 @@
                 document.getElementById('lblPrecio').innerText = '0';
                 document.getElementById('lblStock').innerText = '0';
                 document.getElementById('inputCantidad').max = '';
+            }
+        });
+
+        // logica de la seleccion de ventas 
+        const chkAll = document.getElementById('chkSeleccionarTodas');
+        const checkboxes = document.querySelectorAll('.chkVenta');
+        const txtTotal = document.getElementById('txtNuevoTotal');
+        const btnActualizar = document.getElementById('btnActualizarVenta');
+
+        // funcion para evaluar la cantidad de seleccionados y mostrar el total de la venta seleccionada
+        function evaluarSeleccion() {
+            const seleccionados = document.querySelectorAll('.chkVenta:checked');
+
+            if (seleccionados.length === 1) {
+                // Si hay exactamente una seleccionada, se muestra su valor actual
+                txtTotal.value = seleccionados[0].getAttribute('data-total');
+            } else {
+                // Si hay 0 o mas de una seleccionada, el cuadro de texto se limpia y queda vacio para evitar confusiones de este
+                txtTotal.value = '';
+            }
+        }
+
+        // Seleccionar todas las ventas
+        chkAll.addEventListener('change', function() {
+            checkboxes.forEach(chk => {
+                chk.checked = chkAll.checked;
+            });
+            evaluarSeleccion();
+        });
+
+        // Evento para cada checkbox individual
+        checkboxes.forEach(chk => {
+            chk.addEventListener('change', function() {
+                // Si deseleccionas una manualmente, quita el check de "Seleccionar todas"
+                if (!this.checked) {
+                    chkAll.checked = false;
+                }
+                evaluarSeleccion();
+            });
+        });
+
+        // Validacion para el boton de actualizar venta, solo muestra una a la vez y si no hay ninguna manda mensaje como tambien si hay mas de una seleccionada
+        btnActualizar.addEventListener('click', function(e) {
+            const seleccionados = document.querySelectorAll('.chkVenta:checked');
+
+            if (seleccionados.length > 1) {
+                e.preventDefault(); // si tiene mas de una para esto
+                alert("Solo se puede actualizar una venta a la vez");
+            } else if (seleccionados.length === 0) {
+                e.preventDefault();
+                alert("Debe seleccionar al menos una venta para poder actualizarla");
             }
         });
     </script>

@@ -1,4 +1,48 @@
 ﻿@page
-@model MartketOrtz.Pages.Index1Model
+@model MartketOrtz.Pages.LoginModel
 @{
+    ViewData["Title"] = "Iniciar Sesión";
+    ViewData["HideNav"] = true;
 }
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4 col-sm-8">
+
+            <div class="text-center mb-4">
+                <img src="~/img/logo.png" alt="MiniMarket Ortz Logo" style="max-width: 180px;" class="mb-3" />
+                <h3 class="fw-bold" style="color: #0078d4;">Iniciar Sesión</h3>
+            </div>
+
+            <div class="card shadow-sm rounded-4 border-0" style="background-color: #f8f9fa;">
+                <div class="card-body p-4">
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger text-center shadow-sm">
+                            @Model.ErrorMessage
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Usuario:</label>
+                            <input type="text" asp-for="Usuario" class="form-control form-control-lg rounded-3" placeholder="Ej: admin" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Contraseña:</label>
+                            <input type="password" asp-for="Password" class="form-control form-control-lg rounded-3" placeholder="****" required />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5 rounded-3 fw-bold" style="background-color: #0078d4; border: none;">
+                            Ingresar
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -241,5 +241,21 @@ namespace MartketOrtz.Data
             await cmd.ExecuteNonQueryAsync();
         }
 
+        //Login
+
+        public async Task<bool> ValidarLogin(string nombre, string contrasena)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "SELECT COUNT(1) FROM Login WHERE Nombre = @Nombre AND Contraseña = @Contrasena";
+
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Nombre", nombre);
+            cmd.Parameters.AddWithValue("@Contrasena", contrasena);
+
+            int coincidencias = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+
+            return coincidencias > 0;
+        }
     }
 }
