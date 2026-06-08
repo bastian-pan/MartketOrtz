@@ -36,7 +36,7 @@ namespace MartketOrtz.Pages
             if (accesoConcedido)
             {
 
-                HttpContext.Session.SetString("Usuario Logueado", Usuario);
+                HttpContext.Session.SetString("UsuarioLogueado", Usuario);
 
 
                 return RedirectToPage("/Index");
