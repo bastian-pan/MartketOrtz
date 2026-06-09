@@ -67,9 +67,9 @@
                                     </td>
                                     <td>@item.NombreProducto</td>
                                     <td>@item.Cantidad</td>
-                                    <td>$@item.PrecioUnitario</td>
-                                    <td>$@item.IVA</td>
-                                    <td>$@item.SubTotal</td>
+                                    <td>$@item.PrecioUnitario.ToString("0")</td>
+                                    <td>$@item.IVA.ToString("0")</td>
+                                    <td>$@item.SubTotal.ToString("0")</td>
                                 </tr>
                                 index++;
                             }
@@ -136,8 +136,8 @@
                                     </td>
                                     <td>@v.IdVenta</td>
                                     <td>@v.Fecha.ToString("dd/MM/yyyy")</td>
-                                    <td class="fw-bold text-success">$@v.Total</td>
-                                    <td>$@v.IVA</td>
+                                    <td class="fw-bold text-success">$@v.Total.ToString("0")</td>
+                                    <td>$@v.IVA.ToString("0")</td>
                                 </tr>
                             }
                         }

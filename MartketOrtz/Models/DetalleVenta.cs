@@ -9,6 +9,6 @@
 
         
         public decimal SubTotal => Cantidad * PrecioUnitario;
-        public decimal IVA => Math.Round(SubTotal - (SubTotal / 1.19m), 2);
+        public decimal IVA => Math.Round(SubTotal - (SubTotal / 1.19m), 0);
     }
 }

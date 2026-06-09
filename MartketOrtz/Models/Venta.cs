@@ -10,7 +10,7 @@
 
         public decimal IVA { get; set; }
 
-        public decimal Neto => Math.Round(Total / 1.19m, 2);
+        public decimal Neto => Math.Round(Total / 1.19m, 0);
 
         private static int _nextId = 1;
 
@@ -21,7 +21,7 @@
                 IdVenta = _nextId++,
                 Fecha = DateTime.Now.AddDays(-2),
                 Total = 11900m,
-                IVA = Math.Round(11900m - (11900m / 1.19m), 2)
+                IVA = Math.Round(11900m - (11900m / 1.19m), 0)
             },
         };
 

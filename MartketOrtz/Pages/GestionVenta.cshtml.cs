@@ -178,7 +178,7 @@ namespace MartketOrtz.Pages
             if (IdsVentasSeleccionadas != null && IdsVentasSeleccionadas.Count == 1 && NuevoTotal.HasValue)
             {
                 int idVenta = IdsVentasSeleccionadas[0];
-                decimal nuevoIva = Math.Round(NuevoTotal.Value - (NuevoTotal.Value / 1.19m), 2);
+                decimal nuevoIva = Math.Round(NuevoTotal.Value - (NuevoTotal.Value / 1.19m), 0);
 
                 await _databaseHelper.UpdateVenta(idVenta, NuevoTotal.Value, nuevoIva);
             }
