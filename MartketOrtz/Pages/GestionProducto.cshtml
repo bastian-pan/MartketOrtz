@@ -74,7 +74,12 @@
                     <td>@item.producto.Stock</td>
                     <td>
                         <button class="btn btn-warning btn-sm"
-                                onclick="abrirModalProducto(@item.producto.IdProducto, '@item.producto.Nombre', @item.producto.IdCategoria, @item.producto.Precio, @item.producto.Stock)">
+                                onclick="abrirModalProducto(
+                            @item.producto.IdProducto,
+                            '@item.producto.Nombre',
+                            @item.producto.IdCategoria,
+                            @item.producto.Precio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                            @item.producto.Stock)">
                             Editar
                         </button>
                         <form method="post" asp-page-handler="Delete" asp-route-id="@item.producto.IdProducto" style="display:inline;">
