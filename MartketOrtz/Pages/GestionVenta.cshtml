@@ -8,6 +8,10 @@
 
 <div class="container mt-4">
     <h2>Gestión de Ventas</h2>
+    @if (TempData["MensajePago"] != null)
+    {
+        <div class="alert alert-info">@TempData["MensajePago"]</div>
+    }
     <hr />
 
     <div class="row">
@@ -94,8 +98,8 @@
                 </div>
 
                 <div class="mt-3">
-                    <button type="submit" asp-page-handler="Registrar" class="btn btn-success w-100 py-2 fs-5" formnovalidate>
-                        Registrar Venta
+                    <button type="submit" asp-page-handler="Pagar" class="btn btn-success w-100 py-2 fs-5" formnovalidate>
+                        💳 Pagar con Webpay
                     </button>
                 </div>
             </form>
