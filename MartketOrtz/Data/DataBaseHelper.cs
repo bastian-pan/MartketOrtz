@@ -170,16 +170,18 @@ namespace MartketOrtz.Data
 
         // VENTA
 
-        public async Task InsertVenta(DateTime fecha, decimal total, decimal iva)
+        public async Task<int> InsertVenta(DateTime fecha, decimal total, decimal iva)
         {
             using SqlConnection conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
-            string query = "INSERT INTO venta (Fecha, Total, IVA) VALUES (@Fecha, @Total, @IVA)";
+
+            string query = "INSERT INTO venta (Fecha, Total, IVA) OUTPUT INSERTED.IdVenta VALUES (@Fecha, @Total, @IVA)";
             using SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@Fecha", fecha);
             cmd.Parameters.AddWithValue("@Total", total);
             cmd.Parameters.AddWithValue("@IVA", iva);
-            await cmd.ExecuteNonQueryAsync();
+
+            return (int)await cmd.ExecuteScalarAsync();
         }
 
         public async Task<List<Venta>> GetVentas()
@@ -257,5 +259,45 @@ namespace MartketOrtz.Data
 
             return coincidencias > 0;
         }
+
+        //DetalleVenta
+
+        // Guarda cada producto en el historial
+        public async Task InsertVentaDetalle(int idVenta, string nombreProducto, int cantidad, decimal precioUnitario, decimal subTotal)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "INSERT INTO VentaDetalle (IdVenta, NombreProducto, Cantidad, PrecioUnitario, SubTotal) VALUES (@IdVenta, @NombreProducto, @Cantidad, @PrecioUnitario, @SubTotal)";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@IdVenta", idVenta);
+            cmd.Parameters.AddWithValue("@NombreProducto", nombreProducto);
+            cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+            cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
+            cmd.Parameters.AddWithValue("@SubTotal", subTotal);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Leemos los productos  que se vendieron para la boleta de venta
+        public async Task<List<DetalleVenta>> GetDetallesPorVenta(int idVenta)
+        {
+            List<DetalleVenta> detalles = new List<DetalleVenta>();
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "SELECT NombreProducto, Cantidad, PrecioUnitario FROM VentaDetalle WHERE IdVenta = @Id";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", idVenta);
+            using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+            while (reader.Read())
+            {
+                detalles.Add(new DetalleVenta
+                {
+                    NombreProducto = reader.GetString(0),
+                    Cantidad = reader.GetInt32(1),
+                    PrecioUnitario = reader.GetDecimal(2)
+                });
+            }
+            return detalles;
+        }
+
     }
 }

@@ -149,10 +149,13 @@ namespace MartketOrtz.Pages
             decimal total = carrito.Sum(x => x.SubTotal);
             decimal iva = carrito.Sum(x => x.IVA);
 
-            await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
+            // Capturamos el Id de la boleta
+            int idVentaGenerado = await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
 
             foreach (var item in carrito)
             {
+                // Guardamos el detalle del producto en la nueva tabla
+                await _databaseHelper.InsertVentaDetalle(idVentaGenerado, item.NombreProducto, item.Cantidad, item.PrecioUnitario, item.SubTotal);
                 await _databaseHelper.RestarStockProducto(item.IdProducto, item.Cantidad);
             }
 
@@ -238,19 +241,16 @@ namespace MartketOrtz.Pages
                 decimal total = carrito.Sum(x => x.SubTotal);
                 decimal iva = carrito.Sum(x => x.IVA);
 
-                await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
+                int idVentaGenerado = await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
 
                 foreach (var item in carrito)
                 {
+                    await _databaseHelper.InsertVentaDetalle(idVentaGenerado, item.NombreProducto, item.Cantidad, item.PrecioUnitario, item.SubTotal);
                     await _databaseHelper.RestarStockProducto(item.IdProducto, item.Cantidad);
                 }
 
                 HttpContext.Session.Remove(SessionKey);
                 TempData["MensajePago"] = "Pago aprobado. Venta registrada.";
-            }
-            else
-            {
-                TempData["MensajePago"] = "Pago rechazado. La venta no se registró.";
             }
 
             Productos = await _databaseHelper.GetProductosConCategoria();
@@ -258,6 +258,38 @@ namespace MartketOrtz.Pages
             Carrito = LeerCarrito();
 
             return RedirectToPage();
+        }
+
+        public async Task<JsonResult> OnGetBoletaDetalleAsync(int id)
+        {
+            try
+            {
+                var detalles = await _databaseHelper.GetDetallesPorVenta(id);
+                var ventas = await _databaseHelper.GetVentas();
+                var venta = ventas.FirstOrDefault(v => v.IdVenta == id);
+
+                var productos = detalles.Select(d => new {
+                    nombre = d.NombreProducto,
+                    cantidad = d.Cantidad,
+                    precio = d.PrecioUnitario,
+                    subtotal = d.SubTotal
+                });
+
+                var result = new
+                {
+                    idVenta = id,
+                    fecha = venta?.Fecha.ToString("dd/MM/yyyy") ?? "",
+                    total = venta?.Total ?? 0,
+                    iva = venta?.IVA ?? 0,
+                    productos = productos
+                };
+
+                return new JsonResult(result);
+            }
+            catch
+            {
+                return new JsonResult(new { idVenta = id, fecha = "", total = 0, iva = 0, productos = new List<object>() });
+            }
         }
 
     }

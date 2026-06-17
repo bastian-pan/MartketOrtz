@@ -5,6 +5,49 @@
 @{
     ViewData["Title"] = "Gestión de Ventas";
 }
+<style>
+    .ticket-print {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+    }
+    .ticket-print .item {
+        display: flex;
+        justify-content: space-between;
+        margin: 6px 0;
+    }
+    .ticket-print .line {
+        border-bottom: 1px dashed #333;
+        margin: 12px 0;
+    }
+    .ticket-print h4 {
+        text-align: center;
+        margin-bottom: 0;
+    }
+    .ticket-print p {
+        text-align: center;
+        margin: 2px 0 10px 0;
+        font-size: 13px;
+        color: #555;
+    }
+
+    #areaImpresion {
+        display: none;
+    }
+
+    @@media print {
+        body > *:not(#areaImpresion) {
+            display: none !important;
+        }
+
+        #areaImpresion {
+            display: block !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+    }
+</style>
 
 <div class="container mt-4">
     <h2>Gestión de Ventas</h2>
@@ -127,6 +170,7 @@
                             <th>Fecha</th>
                             <th>Total</th>
                             <th>IVA</th>
+                            <th class="text-center">Boleta</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -142,12 +186,18 @@
                                     <td>@v.Fecha.ToString("dd/MM/yyyy")</td>
                                     <td class="fw-bold text-success">$@v.Total.ToString("0")</td>
                                     <td>$@v.IVA.ToString("0")</td>
+
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="imprimirBoleta(@v.IdVenta)">
+                                            🧾 Ver
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5" class="text-center">No hay ventas registradas</td></tr>
+                            <tr><td colspan="6" class="text-center">No hay ventas registradas</td></tr>
                         }
                     </tbody>
                 </table>
@@ -162,6 +212,26 @@
     </div>
 </div>
 
+<div id="areaImpresion" class="ticket-print"></div>
+<div class="modal fade" id="modalBoleta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Boleta de Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoBoleta" class="ticket-print">
+                    <div class="text-center py-4">Cargando...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" onclick="imprimirContenidoBoleta()">🖨️ Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script>
         // info del precio y cantidad
@@ -234,5 +304,73 @@
                 alert("Debe seleccionar al menos una venta para poder actualizarla");
             }
         });
+
+
+        // FUNCION PARA GENERAR E IMPRIMIR LA BOLETA (Blindada)
+// Abre el modal y carga los datos de la boleta desde el servidor
+function imprimirBoleta(id) {
+    const modalEl = document.getElementById('modalBoleta');
+    const modal = new bootstrap.Modal(modalEl);
+    const contenedor = document.getElementById('contenidoBoleta');
+
+    contenedor.innerHTML = '<div class="text-center py-4">Cargando... ⏳</div>';
+    modal.show();
+
+    fetch(`/GestionVenta?handler=BoletaDetalle&id=${id}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Error en el servidor");
+            return response.json();
+        })
+        .then(data => {
+            const { fecha, total, iva, productos } = data;
+            let listaProductosHTML = '';
+
+            if (productos && productos.length > 0) {
+                productos.forEach(p => {
+                    let sub = p.subtotal ? p.subtotal : (p.precio * p.cantidad);
+                    listaProductosHTML += `<div class="item"><span>${p.cantidad}x ${p.nombre}</span> <span>$${sub.toFixed(0)}</span></div>`;
+                });
+            } else {
+                listaProductosHTML = '<div class="item" style="color:#666; font-style:italic;"><span>(Venta sin detalles registrados)</span></div>';
+            }
+
+            contenedor.innerHTML = `
+                <h4>MiniMarket Ortz</h4>
+                <p>Boleta Electrónica</p>
+                <div class="line"></div>
+                <div class="item"><span>N° Venta:</span> <span>${id}</span></div>
+                <div class="item"><span>Fecha:</span> <span>${fecha}</span></div>
+                <div class="line"></div>
+                ${listaProductosHTML}
+                <div class="line"></div>
+                <div class="item"><span>IVA (19%):</span> <span>$${Math.round(iva)}</span></div>
+                <div class="item" style="font-size: 16px; font-weight: bold;"><span>TOTAL:</span> <span>$${Math.round(total)}</span></div>
+                <div class="line"></div>
+                <p>¡Gracias por su compra!</p>
+            `;
+        })
+        .catch(error => {
+            contenedor.innerHTML = '<div class="text-center text-danger py-4">Ocurrió un error al cargar la boleta.</div>';
+            console.error("Error Fetch:", error);
+        });
+}
+
+
+    function imprimirContenidoBoleta() {
+        const contenidoBoleta = document.getElementById('contenidoBoleta');
+        const areaImpresion = document.getElementById('areaImpresion');
+
+    // Copiamos el contenido actual de la boleta al área exclusiva de impresión
+        areaImpresion.innerHTML = contenidoBoleta.innerHTML;
+
+    // Forzamos que el navegador termine de renderizar el cambio
+    // antes de abrir el diálogo de impresión
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            window.print();
+        });
+    });
+}
+        
     </script>
 }
