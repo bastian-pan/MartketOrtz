@@ -227,30 +227,67 @@ namespace MartketOrtz.Pages
 
         [IgnoreAntiforgeryToken]
 
-        public async Task<IActionResult> OnGetRetornoAsync(string token_ws)
+        public async Task<IActionResult> OnGetRetornoAsync(string token_ws, string TBK_TOKEN)
         {
-            var transaction = GetWebpayTransaction();
-            var result = transaction.Commit(token_ws);
-
-            TempData["Debug"] = $"ResponseCode: {result.ResponseCode}, Status: {result.Status}";
-
-            var carrito = LeerCarrito();
-
-            if (result.ResponseCode == 0 && carrito.Count > 0)
+            
+            if (string.IsNullOrWhiteSpace(token_ws) && !string.IsNullOrWhiteSpace(TBK_TOKEN))
             {
-                decimal total = carrito.Sum(x => x.SubTotal);
-                decimal iva = carrito.Sum(x => x.IVA);
+                TempData["MensajePago"] = "El pago fue anulado por el usuario.";
 
-                int idVentaGenerado = await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
+                Productos = await _databaseHelper.GetProductosConCategoria();
+                Ventas = await _databaseHelper.GetVentas();
+                Carrito = LeerCarrito();
 
-                foreach (var item in carrito)
+                return RedirectToPage();
+            }
+
+            
+            if (string.IsNullOrWhiteSpace(token_ws))
+            {
+                TempData["MensajePago"] = "No se recibió información válida del pago.";
+
+                Productos = await _databaseHelper.GetProductosConCategoria();
+                Ventas = await _databaseHelper.GetVentas();
+                Carrito = LeerCarrito();
+
+                return RedirectToPage();
+            }
+
+            
+            var transaction = GetWebpayTransaction();
+
+            try
+            {
+                var result = transaction.Commit(token_ws);
+
+                TempData["Debug"] = $"ResponseCode: {result.ResponseCode}, Status: {result.Status}";
+
+                var carrito = LeerCarrito();
+
+                if (result.ResponseCode == 0 && carrito.Count > 0)
                 {
-                    await _databaseHelper.InsertVentaDetalle(idVentaGenerado, item.NombreProducto, item.Cantidad, item.PrecioUnitario, item.SubTotal);
-                    await _databaseHelper.RestarStockProducto(item.IdProducto, item.Cantidad);
-                }
+                    decimal total = carrito.Sum(x => x.SubTotal);
+                    decimal iva = carrito.Sum(x => x.IVA);
 
-                HttpContext.Session.Remove(SessionKey);
-                TempData["MensajePago"] = "Pago aprobado. Venta registrada.";
+                    int idVentaGenerado = await _databaseHelper.InsertVenta(DateTime.Now, total, iva);
+
+                    foreach (var item in carrito)
+                    {
+                        await _databaseHelper.InsertVentaDetalle(idVentaGenerado, item.NombreProducto, item.Cantidad, item.PrecioUnitario, item.SubTotal);
+                        await _databaseHelper.RestarStockProducto(item.IdProducto, item.Cantidad);
+                    }
+
+                    HttpContext.Session.Remove(SessionKey);
+                    TempData["MensajePago"] = "Pago aprobado. Venta registrada.";
+                }
+                else
+                {
+                    TempData["MensajePago"] = "El pago fue rechazado.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajePago"] = "Ocurrió un error al confirmar el pago: " + ex.Message;
             }
 
             Productos = await _databaseHelper.GetProductosConCategoria();
