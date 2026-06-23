@@ -1,5 +1,6 @@
 using MartketOrtz.Data;
 using MartketOrtz.Models;
+using MartketOrtz.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
@@ -12,11 +13,13 @@ namespace MartketOrtz.Pages
     public class GestionVentaModel : PageModel
     {
         private readonly DataBaseHelper _databaseHelper;
+        private readonly BoletaPdfService _boletaPdfService;
         private const string SessionKey = "Carrito";
 
-        public GestionVentaModel(DataBaseHelper databaseHelper)
+        public GestionVentaModel(DataBaseHelper databaseHelper, BoletaPdfService boletaPdfService)
         {
             _databaseHelper = databaseHelper;
+            _boletaPdfService = boletaPdfService;
         }
 
         public List<(Producto producto, string nombreCategoria)> Productos { get; set; } = new();
@@ -195,7 +198,7 @@ namespace MartketOrtz.Pages
 
         //API TRANSBANK
 
-        
+
         private Transaction GetWebpayTransaction()
         {
             var options = new Transbank.Common.Options(
@@ -206,7 +209,7 @@ namespace MartketOrtz.Pages
             return new Transaction(options);
         }
 
-        
+
         public IActionResult OnPostPagar()
         {
             var carrito = LeerCarrito();
@@ -229,7 +232,7 @@ namespace MartketOrtz.Pages
 
         public async Task<IActionResult> OnGetRetornoAsync(string token_ws, string TBK_TOKEN)
         {
-            
+
             if (string.IsNullOrWhiteSpace(token_ws) && !string.IsNullOrWhiteSpace(TBK_TOKEN))
             {
                 TempData["MensajePago"] = "El pago fue anulado por el usuario.";
@@ -241,7 +244,7 @@ namespace MartketOrtz.Pages
                 return RedirectToPage();
             }
 
-            
+
             if (string.IsNullOrWhiteSpace(token_ws))
             {
                 TempData["MensajePago"] = "No se recibió información válida del pago.";
@@ -253,7 +256,7 @@ namespace MartketOrtz.Pages
                 return RedirectToPage();
             }
 
-            
+
             var transaction = GetWebpayTransaction();
 
             try
@@ -279,6 +282,7 @@ namespace MartketOrtz.Pages
 
                     HttpContext.Session.Remove(SessionKey);
                     TempData["MensajePago"] = "Pago aprobado. Venta registrada.";
+                    TempData["IdVentaGenerada"] = idVentaGenerado;
                 }
                 else
                 {
@@ -297,6 +301,34 @@ namespace MartketOrtz.Pages
             return RedirectToPage();
         }
 
+        // Genera la boleta de la venta como PDF y la entrega para visualizar/imprimir en el navegador
+        public async Task<IActionResult> OnGetBoletaPdfAsync(int id)
+        {
+            var detalles = await _databaseHelper.GetDetallesPorVenta(id);
+            var ventas = await _databaseHelper.GetVentas();
+            var venta = ventas.FirstOrDefault(v => v.IdVenta == id);
+
+            if (venta == null)
+            {
+                return NotFound();
+            }
+
+            byte[] pdfBytes = _boletaPdfService.GenerarBoletaPdf(
+                venta.IdVenta,
+                venta.Fecha,
+                venta.Total,
+                venta.IVA,
+                detalles
+            );
+
+            // "inline" hace que el navegador la muestre directamente (con su botón de imprimir nativo)
+            // en vez de forzar la descarga del archivo
+            Response.Headers.Append("Content-Disposition", $"inline; filename=Boleta_{id}.pdf");
+            return File(pdfBytes, "application/pdf");
+        }
+
+        // Entrega los datos de la boleta en JSON, usado por la impresión automática
+        // que arma el ticket en HTML directamente en el navegador (iframe oculto)
         public async Task<JsonResult> OnGetBoletaDetalleAsync(int id)
         {
             try
@@ -315,7 +347,7 @@ namespace MartketOrtz.Pages
                 var result = new
                 {
                     idVenta = id,
-                    fecha = venta?.Fecha.ToString("dd/MM/yyyy") ?? "",
+                    fecha = venta?.Fecha.ToString("dd/MM/yyyy HH:mm") ?? "",
                     total = venta?.Total ?? 0,
                     iva = venta?.IVA ?? 0,
                     productos = productos

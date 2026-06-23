@@ -169,6 +169,12 @@
     </div>
 </div>
 
+@if (TempData["IdVentaGenerada"] != null)
+{
+    var idBoletaParaMostrar = (int)TempData["IdVentaGenerada"]!;
+    <input type="hidden" id="hdnIdVentaRecienGenerada" value="@idBoletaParaMostrar" />
+}
+
 <div id="areaImpresion" class="ticket-print"></div>
 <div class="modal fade" id="modalBoleta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
@@ -260,15 +266,16 @@
             }
         });
 
-        // Abre el modal y carga los datos de la boleta desde el servidor
-        function imprimirBoleta(id) {
-            var modalEl = document.getElementById('modalBoleta');
-            var modal = new bootstrap.Modal(modalEl);
-            var contenedor = document.getElementById('contenidoBoleta');
+        // Si se acaba de aprobar un pago, imprimimos automáticamente la boleta en PDF
+        // (generada por QuestPDF) cargándola en un iframe oculto.
+        var idVentaRecienGenerada = document.getElementById('hdnIdVentaRecienGenerada');
+        if (idVentaRecienGenerada) {
+            imprimirPdfEnIframe(idVentaRecienGenerada.value);
+        }
 
-            contenedor.innerHTML = '<div class="text-center py-4">Cargando...</div>';
-            modal.show();
-
+        // Pide los datos de la boleta al servidor y arma el HTML del ticket.
+        // callback recibe el HTML ya armado, listo para mostrar en el modal "Ver".
+        function obtenerDatosBoleta(id, callback) {
             fetch('/GestionVenta?handler=BoletaDetalle&id=' + id)
                 .then(function (response) {
                     if (!response.ok) {
@@ -277,49 +284,74 @@
                     return response.json();
                 })
                 .then(function (data) {
-                    var fecha = data.fecha;
-                    var total = data.total;
-                    var iva = data.iva;
-                    var productos = data.productos;
-
-                    var listaProductosHTML = '';
-
-                    if (productos && productos.length > 0) {
-                        productos.forEach(function (p) {
-                            var sub = p.subtotal ? p.subtotal : (p.precio * p.cantidad);
-                            listaProductosHTML += '<div class="item"><span>' + p.cantidad + 'x ' + p.nombre + '</span> <span>$' + sub.toFixed(0) + '</span></div>';
-                        });
-                    } else {
-                        listaProductosHTML = '<div class="item" style="color:#666; font-style:italic;"><span>(Venta sin detalles registrados)</span></div>';
-                    }
-
-                    var htmlBoleta =
-                        '<h4>MiniMarket Ortz</h4>' +
-                        '<p>Boleta Electronica</p>' +
-                        '<div class="line"></div>' +
-                        '<div class="item"><span>N Venta:</span> <span>' + id + '</span></div>' +
-                        '<div class="item"><span>Fecha:</span> <span>' + fecha + '</span></div>' +
-                        '<div class="line"></div>' +
-                        listaProductosHTML +
-                        '<div class="line"></div>' +
-                        '<div class="item"><span>IVA (19%):</span> <span>$' + Math.round(iva) + '</span></div>' +
-                        '<div class="item" style="font-size: 16px; font-weight: bold;"><span>TOTAL:</span> <span>$' + Math.round(total) + '</span></div>' +
-                        '<div class="line"></div>' +
-                        '<p>Gracias por su compra!</p>';
-
-                    contenedor.innerHTML = htmlBoleta;
-                    document.getElementById('areaImpresion').innerHTML = htmlBoleta;
+                    var htmlBoleta = construirHtmlBoleta(id, data);
+                    callback(htmlBoleta);
                 })
                 .catch(function (error) {
-                    contenedor.innerHTML = '<div class="text-center text-danger py-4">Ocurrio un error al cargar la boleta.</div>';
                     console.error("Error Fetch:", error);
+                    callback('<div class="text-center text-danger py-4">Ocurrio un error al cargar la boleta.</div>');
                 });
         }
 
-        // Imprime el contenido de la boleta usando un iframe 
-       function imprimirContenidoBoleta() {
-            var htmlBoleta = document.getElementById('areaImpresion').innerHTML;
+        // Arma el HTML del ticket a partir de los datos JSON de la boleta (solo para vista previa en el modal)
+        function construirHtmlBoleta(id, data) {
+            var fecha = data.fecha;
+            var total = data.total;
+            var iva = data.iva;
+            var productos = data.productos;
 
+            var listaProductosHTML = '';
+
+            if (productos && productos.length > 0) {
+                productos.forEach(function (p) {
+                    var sub = p.subtotal ? p.subtotal : (p.precio * p.cantidad);
+                    listaProductosHTML += '<div class="item"><span>' + p.cantidad + 'x ' + p.nombre + '</span> <span>$' + sub.toFixed(0) + '</span></div>';
+                });
+            } else {
+                listaProductosHTML = '<div class="item" style="color:#666; font-style:italic;"><span>(Venta sin detalles registrados)</span></div>';
+            }
+
+            return '<h4>MiniMarket Ortz</h4>' +
+                '<p>Boleta Electronica</p>' +
+                '<div class="line"></div>' +
+                '<div class="item"><span>N Venta:</span> <span>' + id + '</span></div>' +
+                '<div class="item"><span>Fecha:</span> <span>' + fecha + '</span></div>' +
+                '<div class="line"></div>' +
+                listaProductosHTML +
+                '<div class="line"></div>' +
+                '<div class="item"><span>IVA (19%):</span> <span>$' + Math.round(iva) + '</span></div>' +
+                '<div class="item" style="font-size: 16px; font-weight: bold;"><span>TOTAL:</span> <span>$' + Math.round(total) + '</span></div>' +
+                '<div class="line"></div>' +
+                '<p>Gracias por su compra!</p>';
+        }
+
+        // Abre el modal y muestra una vista previa rápida de la boleta (HTML simple)
+        var idVentaActualEnModal = null;
+        function imprimirBoleta(id) {
+            idVentaActualEnModal = id;
+
+            var modalEl = document.getElementById('modalBoleta');
+            var modal = new bootstrap.Modal(modalEl);
+            var contenedor = document.getElementById('contenidoBoleta');
+
+            contenedor.innerHTML = '<div class="text-center py-4">Cargando...</div>';
+            modal.show();
+
+            obtenerDatosBoleta(id, function (htmlBoleta) {
+                contenedor.innerHTML = htmlBoleta;
+            });
+        }
+
+        // Imprime la boleta en PDF (QuestPDF) de la venta actualmente abierta en el modal
+        function imprimirContenidoBoleta() {
+            if (idVentaActualEnModal) {
+                imprimirPdfEnIframe(idVentaActualEnModal);
+            }
+        }
+
+        // Carga el PDF de la boleta (generado por QuestPDF) en un iframe oculto
+        // y dispara la impresión apenas termina de cargar.
+        function imprimirPdfEnIframe(id) {
             var iframe = document.createElement('iframe');
             iframe.style.position = 'fixed';
             iframe.style.right = '0';
@@ -327,29 +359,19 @@
             iframe.style.width = '0';
             iframe.style.height = '0';
             iframe.style.border = '0';
+            iframe.src = '/GestionVenta?handler=BoletaPdf&id=' + id;
             document.body.appendChild(iframe);
 
-            var doc = iframe.contentWindow.document;
-
-            var styleEl = doc.createElement('style');
-            styleEl.textContent =
-                'body { font-family: Courier New, Courier, monospace; font-size: 14px; padding: 20px; }' +
-                '.item { display: flex; justify-content: space-between; margin: 6px 0; }' +
-                '.line { border-bottom: 1px dashed #333; margin: 12px 0; }' +
-                'h4 { text-align: center; margin-bottom: 0; }' +
-                'p { text-align: center; margin: 2px 0 10px 0; font-size: 13px; color: #555; }';
-
-            doc.head.appendChild(styleEl);
-            doc.body.innerHTML = htmlBoleta;
-
-            setTimeout(function () {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-
+            iframe.addEventListener('load', function () {
                 setTimeout(function () {
-                    document.body.removeChild(iframe);
-                }, 1000);
-            }, 200);
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+
+                    setTimeout(function () {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                }, 300);
+            });
         }
     </script>
 }
