@@ -9,9 +9,20 @@ namespace MartketOrtz.Services
     // listo para ser visualizado e impreso directamente desde el navegador.
     public class BoletaPdfService
     {
+        private readonly IWebHostEnvironment _env;
+
+        public BoletaPdfService(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
         public byte[] GenerarBoletaPdf(int idVenta, DateTime fecha, decimal total, decimal iva, List<DetalleVenta> detalles)
         {
             decimal neto = total - iva;
+
+            // Ruta del logo dentro de wwwroot/images
+            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
+            byte[]? logoBytes = File.Exists(logoPath) ? File.ReadAllBytes(logoPath) : null;
 
             var documento = Document.Create(container =>
             {
@@ -25,6 +36,11 @@ namespace MartketOrtz.Services
                     page.Content().Column(column =>
                     {
                         column.Spacing(4);
+
+                        if (logoBytes != null)
+                        {
+                            column.Item().AlignCenter().Width(50).Image(logoBytes);
+                        }
 
                         column.Item().AlignCenter().Text("MiniMarket Ortz")
                             .FontSize(14).Bold();
