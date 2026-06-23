@@ -301,7 +301,7 @@ namespace MartketOrtz.Pages
             return RedirectToPage();
         }
 
-        // Genera la boleta de la venta como PDF y la entrega para visualizar/imprimir en el navegador
+
         public async Task<IActionResult> OnGetBoletaPdfAsync(int id)
         {
             var detalles = await _databaseHelper.GetDetallesPorVenta(id);
@@ -321,14 +321,11 @@ namespace MartketOrtz.Pages
                 detalles
             );
 
-            // "inline" hace que el navegador la muestre directamente (con su botón de imprimir nativo)
-            // en vez de forzar la descarga del archivo
+
             Response.Headers.Append("Content-Disposition", $"inline; filename=Boleta_{id}.pdf");
             return File(pdfBytes, "application/pdf");
         }
 
-        // Entrega los datos de la boleta en JSON, usado por la impresión automática
-        // que arma el ticket en HTML directamente en el navegador (iframe oculto)
         public async Task<JsonResult> OnGetBoletaDetalleAsync(int id)
         {
             try
@@ -358,6 +355,62 @@ namespace MartketOrtz.Pages
             catch
             {
                 return new JsonResult(new { idVenta = id, fecha = "", total = 0, iva = 0, productos = new List<object>() });
+            }
+        }
+
+
+        public async Task<JsonResult> OnGetDetalleEditarVentaAsync(int id)
+        {
+            try
+            {
+                var detalles = await _databaseHelper.GetDetallesPorVenta(id);
+
+                var items = detalles.Select(d => new
+                {
+                    nombreProducto = d.NombreProducto,
+                    cantidad = d.Cantidad,
+                    precioUnitario = d.PrecioUnitario
+                });
+
+                return new JsonResult(new { idVenta = id, items });
+            }
+            catch
+            {
+                return new JsonResult(new { idVenta = id, items = new List<object>() });
+            }
+        }
+
+
+        public async Task<JsonResult> OnPostGuardarEdicionVentaAsync([FromBody] EdicionVentaRequest request)
+        {
+            if (request == null || request.IdVenta <= 0 || request.Items == null || request.Items.Count == 0)
+            {
+                return new JsonResult(new { success = false, mensaje = "Datos inválidos." });
+            }
+
+            try
+            {
+
+                decimal nuevoTotal = request.Items.Sum(i => i.Cantidad * i.PrecioUnitario);
+                decimal nuevoIva = Math.Round(nuevoTotal - (nuevoTotal / 1.19m), 0);
+
+                // Reemplazamos los detalles antiguos por los ya editados
+                await _databaseHelper.DeleteDetallesPorVenta(request.IdVenta);
+
+                foreach (var item in request.Items)
+                {
+                    decimal subTotal = item.Cantidad * item.PrecioUnitario;
+                    await _databaseHelper.InsertVentaDetalle(request.IdVenta, item.NombreProducto, item.Cantidad, item.PrecioUnitario, subTotal);
+                }
+
+
+                await _databaseHelper.UpdateVenta(request.IdVenta, nuevoTotal, nuevoIva);
+
+                return new JsonResult(new { success = true, idVenta = request.IdVenta, total = nuevoTotal, iva = nuevoIva });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, mensaje = "Ocurrió un error al guardar: " + ex.Message });
             }
         }
 

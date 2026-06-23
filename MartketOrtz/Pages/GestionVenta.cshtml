@@ -6,6 +6,8 @@
     ViewData["Title"] = "Gestión de Ventas";
 }
 
+@Html.AntiForgeryToken()
+
 <div class="container mt-4">
     <h2>Gestión de Ventas</h2>
     @if (TempData["MensajePago"] != null)
@@ -128,6 +130,7 @@
                             <th>Total</th>
                             <th>IVA</th>
                             <th class="text-center">Boleta</th>
+                            <th class="text-center">Editar</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,18 +138,23 @@
                         {
                             foreach (var v in Model.Ventas)
                             {
-                                <tr>
+                                <tr id="filaVenta-@v.IdVenta">
                                     <td class="text-center">
                                         <input class="form-check-input chkVenta" type="checkbox" name="IdsVentasSeleccionadas" value="@v.IdVenta" data-total="@v.Total.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" />
                                     </td>
                                     <td>@v.IdVenta</td>
                                     <td>@v.Fecha.ToString("dd/MM/yyyy")</td>
-                                    <td class="fw-bold text-success">$@v.Total.ToString("0")</td>
-                                    <td>$@v.IVA.ToString("0")</td>
+                                    <td class="fw-bold text-success" id="totalVenta-@v.IdVenta">$@v.Total.ToString("0")</td>
+                                    <td id="ivaVenta-@v.IdVenta">$@v.IVA.ToString("0")</td>
 
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="imprimirBoleta(@v.IdVenta)">
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="imprimirBoleta(@v.IdVenta)">
                                             🧾 Ver
+                                        </button>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="editarVenta(@v.IdVenta)">
+                                             Editar
                                         </button>
                                     </td>
                                 </tr>
@@ -154,7 +162,7 @@
                         }
                         else
                         {
-                            <tr><td colspan="6" class="text-center">No hay ventas registradas</td></tr>
+                            <tr><td colspan="7" class="text-center">No hay ventas registradas</td></tr>
                         }
                     </tbody>
                 </table>
@@ -191,6 +199,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-success" onclick="imprimirContenidoBoleta()">🖨️ Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarVenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Venta #<span id="idVentaEditar"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoEditarVenta">
+                    <div class="text-center py-4">Cargando...</div>
+                </div>
+                <div id="errorEditarVenta" class="text-danger small mt-2" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <span class="me-auto fw-bold">Nuevo Total: $<span id="totalEditarVenta">0</span></span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="btnGuardarEdicionVenta" onclick="guardarEdicionVenta()">💾 Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -243,7 +273,7 @@
             evaluarSeleccion();
         });
 
-        // Evento para cada checkbox individual
+   
         checkboxes.forEach(function (chk) {
             chk.addEventListener('change', function () {
                 if (!this.checked) {
@@ -253,7 +283,7 @@
             });
         });
 
-        // Validacion para el boton de actualizar venta
+
         btnActualizar.addEventListener('click', function (e) {
             var seleccionados = document.querySelectorAll('.chkVenta:checked');
 
@@ -266,15 +296,12 @@
             }
         });
 
-        // Si se acaba de aprobar un pago, imprimimos automáticamente la boleta en PDF
-        // (generada por QuestPDF) cargándola en un iframe oculto.
+
         var idVentaRecienGenerada = document.getElementById('hdnIdVentaRecienGenerada');
         if (idVentaRecienGenerada) {
             imprimirPdfEnIframe(idVentaRecienGenerada.value);
         }
 
-        // Pide los datos de la boleta al servidor y arma el HTML del ticket.
-        // callback recibe el HTML ya armado, listo para mostrar en el modal "Ver".
         function obtenerDatosBoleta(id, callback) {
             fetch('/GestionVenta?handler=BoletaDetalle&id=' + id)
                 .then(function (response) {
@@ -293,7 +320,7 @@
                 });
         }
 
-        // Arma el HTML del ticket a partir de los datos JSON de la boleta (solo para vista previa en el modal)
+
         function construirHtmlBoleta(id, data) {
             var fecha = data.fecha;
             var total = data.total;
@@ -325,7 +352,7 @@
                 '<p>Gracias por su compra!</p>';
         }
 
-        // Abre el modal y muestra una vista previa rápida de la boleta (HTML simple)
+ 
         var idVentaActualEnModal = null;
         function imprimirBoleta(id) {
             idVentaActualEnModal = id;
@@ -342,15 +369,14 @@
             });
         }
 
-        // Imprime la boleta en PDF (QuestPDF) de la venta actualmente abierta en el modal
+  
         function imprimirContenidoBoleta() {
             if (idVentaActualEnModal) {
                 imprimirPdfEnIframe(idVentaActualEnModal);
             }
         }
 
-        // Carga el PDF de la boleta (generado por QuestPDF) en un iframe oculto
-        // y dispara la impresión apenas termina de cargar.
+
         function imprimirPdfEnIframe(id) {
             var iframe = document.createElement('iframe');
             iframe.style.position = 'fixed';
@@ -372,6 +398,170 @@
                     }, 1000);
                 }, 300);
             });
+        }
+
+
+        var idVentaActualEnEdicion = null;
+
+        function editarVenta(id) {
+            idVentaActualEnEdicion = id;
+            document.getElementById('idVentaEditar').innerText = id;
+
+            var contenedor = document.getElementById('contenidoEditarVenta');
+            var errorDiv = document.getElementById('errorEditarVenta');
+            errorDiv.style.display = 'none';
+            contenedor.innerHTML = '<div class="text-center py-4">Cargando...</div>';
+
+            var modal = new bootstrap.Modal(document.getElementById('modalEditarVenta'));
+            modal.show();
+
+            fetch('/GestionVenta?handler=DetalleEditarVenta&id=' + id)
+                .then(function (response) {
+                    if (!response.ok) throw new Error("Error en el servidor");
+                    return response.json();
+                })
+                .then(function (data) {
+                    construirTablaEdicion(data.items || []);
+                })
+                .catch(function () {
+                    contenedor.innerHTML = '<div class="text-center text-danger py-4">Ocurrió un error al cargar los productos de la venta.</div>';
+                });
+        }
+
+
+        function construirTablaEdicion(items) {
+            var contenedor = document.getElementById('contenidoEditarVenta');
+
+            if (!items || items.length === 0) {
+                contenedor.innerHTML = '<div class="text-center text-muted py-4">Esta venta no tiene productos registrados.</div>';
+                document.getElementById('totalEditarVenta').innerText = '0';
+                return;
+            }
+
+            var html = '<table class="table table-bordered table-sm align-middle" id="tablaEdicionVenta">' +
+                '<thead class="table-light"><tr>' +
+                '<th>Producto</th><th style="width:120px;">Cantidad</th><th style="width:150px;">Precio Unit.</th><th class="text-end" style="width:130px;">Subtotal</th>' +
+                '</tr></thead><tbody>';
+
+            items.forEach(function (item, idx) {
+                html += '<tr data-nombre="' + item.nombreProducto.replace(/"/g, '&quot;') + '">' +
+                    '<td>' + item.nombreProducto + '</td>' +
+                    '<td><input type="number" min="1" class="form-control form-control-sm input-cantidad-edicion" value="' + item.cantidad + '" /></td>' +
+                    '<td><input type="number" min="0" step="1" class="form-control form-control-sm input-precio-edicion" value="' + item.precioUnitario + '" /></td>' +
+                    '<td class="text-end fw-bold subtotal-edicion">$' + Math.round(item.cantidad * item.precioUnitario) + '</td>' +
+                    '</tr>';
+            });
+
+            html += '</tbody></table>';
+            contenedor.innerHTML = html;
+
+            contenedor.querySelectorAll('.input-cantidad-edicion, .input-precio-edicion').forEach(function (input) {
+                input.addEventListener('input', recalcularTotalesEdicion);
+            });
+
+            recalcularTotalesEdicion();
+        }
+
+
+        function recalcularTotalesEdicion() {
+            var filas = document.querySelectorAll('#tablaEdicionVenta tbody tr');
+            var totalGeneral = 0;
+
+            filas.forEach(function (fila) {
+                var cantidad = parseFloat(fila.querySelector('.input-cantidad-edicion').value) || 0;
+                var precio = parseFloat(fila.querySelector('.input-precio-edicion').value) || 0;
+                var subtotal = cantidad * precio;
+
+                fila.querySelector('.subtotal-edicion').innerText = '$' + Math.round(subtotal);
+                totalGeneral += subtotal;
+            });
+
+            document.getElementById('totalEditarVenta').innerText = Math.round(totalGeneral);
+        }
+
+
+        function guardarEdicionVenta() {
+            if (!idVentaActualEnEdicion) return;
+
+            var filas = document.querySelectorAll('#tablaEdicionVenta tbody tr');
+            var errorDiv = document.getElementById('errorEditarVenta');
+            errorDiv.style.display = 'none';
+
+            if (filas.length === 0) return;
+
+            var items = [];
+            var datosValidos = true;
+
+            filas.forEach(function (fila) {
+                var nombre = fila.getAttribute('data-nombre');
+                var cantidad = parseInt(fila.querySelector('.input-cantidad-edicion').value);
+                var precio = parseFloat(fila.querySelector('.input-precio-edicion').value);
+
+                if (isNaN(cantidad) || cantidad <= 0 || isNaN(precio) || precio < 0) {
+                    datosValidos = false;
+                }
+
+                items.push({ nombreProducto: nombre, cantidad: cantidad, precioUnitario: precio });
+            });
+
+            if (!datosValidos) {
+                errorDiv.innerText = 'Verifica que las cantidades y precios sean válidos.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            var btnGuardar = document.getElementById('btnGuardarEdicionVenta');
+            btnGuardar.disabled = true;
+            btnGuardar.innerText = 'Guardando...';
+
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            var token = tokenInput ? tokenInput.value : '';
+
+            fetch('/GestionVenta?handler=GuardarEdicionVenta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ idVenta: idVentaActualEnEdicion, items: items })
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return response.text().then(function (texto) {
+                            throw new Error('HTTP ' + response.status + ': ' + texto);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerText = '💾 Guardar Cambios';
+
+                    if (data.success) {
+             
+                        var celdaTotal = document.getElementById('totalVenta-' + data.idVenta);
+                        var celdaIva = document.getElementById('ivaVenta-' + data.idVenta);
+                        if (celdaTotal) celdaTotal.innerText = '$' + Math.round(data.total);
+                        if (celdaIva) celdaIva.innerText = '$' + Math.round(data.iva);
+
+                     
+                        var checkbox = document.querySelector('.chkVenta[value="' + data.idVenta + '"]');
+                        if (checkbox) checkbox.setAttribute('data-total', data.total.toFixed(2));
+
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarVenta'));
+                        modal.hide();
+                    } else {
+                        errorDiv.innerText = data.mensaje || 'No se pudo guardar la edición.';
+                        errorDiv.style.display = 'block';
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error al guardar edición de venta:', error);
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerText = '💾 Guardar Cambios';
+                    errorDiv.innerText = 'Ocurrió un error al guardar. Detalle: ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
         }
     </script>
 }

@@ -1,6 +1,6 @@
 ﻿using MartketOrtz.Models;
 using System.Data.SqlClient;
-using Microsoft.AspNetCore.Hosting; // Agregado para leer la ruta del sistema
+using Microsoft.AspNetCore.Hosting;
 
 namespace MartketOrtz.Data
 {
@@ -297,6 +297,17 @@ namespace MartketOrtz.Data
                 });
             }
             return detalles;
+        }
+
+        // Elimina todos los detalles de una venta (se usa al editar: se borran y se reinsertan actualizados)
+        public async Task DeleteDetallesPorVenta(int idVenta)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = "DELETE FROM VentaDetalle WHERE IdVenta = @Id";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", idVenta);
+            await cmd.ExecuteNonQueryAsync();
         }
 
     }

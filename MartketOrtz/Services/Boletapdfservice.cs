@@ -5,8 +5,7 @@ using QuestPDF.Infrastructure;
 
 namespace MartketOrtz.Services
 {
-    // Servicio encargado de generar la boleta de venta como un PDF real,
-    // listo para ser visualizado e impreso directamente desde el navegador.
+
     public class BoletaPdfService
     {
         private readonly IWebHostEnvironment _env;
@@ -20,7 +19,7 @@ namespace MartketOrtz.Services
         {
             decimal neto = total - iva;
 
-            // Ruta del logo dentro de wwwroot/images
+            // logo
             string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
             byte[]? logoBytes = File.Exists(logoPath) ? File.ReadAllBytes(logoPath) : null;
 
@@ -28,7 +27,7 @@ namespace MartketOrtz.Services
             {
                 container.Page(page =>
                 {
-                    // Tamaño angosto, similar a un ticket de impresora térmica/boleta
+                    // medidas de la boleta
                     page.Size(226, 1200, Unit.Point);
                     page.Margin(15);
                     page.DefaultTextStyle(x => x.FontFamily("Courier New").FontSize(9));
@@ -64,7 +63,7 @@ namespace MartketOrtz.Services
 
                         column.Item().LineHorizontal(1).LineDashPattern([2f, 2f]).LineColor(Colors.Grey.Medium);
 
-                        // Encabezado de la lista de productos
+                        // encabezado de la boleta
                         column.Item().Row(row =>
                         {
                             row.RelativeItem(3).Text("Producto").Bold();
