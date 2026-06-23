@@ -154,7 +154,7 @@
                                     </td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-sm btn-warning" onclick="editarVenta(@v.IdVenta)">
-                                             Editar
+                                            Editar
                                         </button>
                                     </td>
                                 </tr>
@@ -218,7 +218,7 @@
                 <div id="errorEditarVenta" class="text-danger small mt-2" style="display:none;"></div>
             </div>
             <div class="modal-footer">
-                <span class="me-auto fw-bold">Nuevo Total: $<span id="totalEditarVenta">0</span></span>
+                <span class="me-auto fw-bold">Nuevo Total: $<span id="totalEditarVenta">0</span> <span class="text-muted fw-normal">(IVA: $<span id="ivaEditarVenta">0</span>)</span></span>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-warning" id="btnGuardarEdicionVenta" onclick="guardarEdicionVenta()">💾 Guardar Cambios</button>
             </div>
@@ -435,20 +435,24 @@
             if (!items || items.length === 0) {
                 contenedor.innerHTML = '<div class="text-center text-muted py-4">Esta venta no tiene productos registrados.</div>';
                 document.getElementById('totalEditarVenta').innerText = '0';
+                document.getElementById('ivaEditarVenta').innerText = '0';
                 return;
             }
 
             var html = '<table class="table table-bordered table-sm align-middle" id="tablaEdicionVenta">' +
                 '<thead class="table-light"><tr>' +
-                '<th>Producto</th><th style="width:120px;">Cantidad</th><th style="width:150px;">Precio Unit.</th><th class="text-end" style="width:130px;">Subtotal</th>' +
+                '<th>Producto</th><th style="width:120px;">Cantidad</th><th style="width:150px;">Precio Unit.</th><th class="text-end" style="width:110px;">IVA</th><th class="text-end" style="width:130px;">Subtotal</th>' +
                 '</tr></thead><tbody>';
 
             items.forEach(function (item, idx) {
+                var subtotalInicial = item.cantidad * item.precioUnitario;
+                var ivaInicial = Math.round(subtotalInicial - (subtotalInicial / 1.19));
                 html += '<tr data-nombre="' + item.nombreProducto.replace(/"/g, '&quot;') + '">' +
                     '<td>' + item.nombreProducto + '</td>' +
                     '<td><input type="number" min="1" class="form-control form-control-sm input-cantidad-edicion" value="' + item.cantidad + '" /></td>' +
                     '<td><input type="number" min="0" step="1" class="form-control form-control-sm input-precio-edicion" value="' + item.precioUnitario + '" /></td>' +
-                    '<td class="text-end fw-bold subtotal-edicion">$' + Math.round(item.cantidad * item.precioUnitario) + '</td>' +
+                    '<td class="text-end iva-edicion">$' + ivaInicial + '</td>' +
+                    '<td class="text-end fw-bold subtotal-edicion">$' + Math.round(subtotalInicial) + '</td>' +
                     '</tr>';
             });
 
@@ -471,12 +475,17 @@
                 var cantidad = parseFloat(fila.querySelector('.input-cantidad-edicion').value) || 0;
                 var precio = parseFloat(fila.querySelector('.input-precio-edicion').value) || 0;
                 var subtotal = cantidad * precio;
+                var ivaFila = subtotal - (subtotal / 1.19);
 
+                fila.querySelector('.iva-edicion').innerText = '$' + Math.round(ivaFila);
                 fila.querySelector('.subtotal-edicion').innerText = '$' + Math.round(subtotal);
                 totalGeneral += subtotal;
             });
 
+            var ivaTotal = totalGeneral - (totalGeneral / 1.19);
+
             document.getElementById('totalEditarVenta').innerText = Math.round(totalGeneral);
+            document.getElementById('ivaEditarVenta').innerText = Math.round(ivaTotal);
         }
 
 
@@ -538,7 +547,7 @@
                     btnGuardar.innerText = '💾 Guardar Cambios';
 
                     if (data.success) {
-             
+
                         var celdaTotal = document.getElementById('totalVenta-' + data.idVenta);
                         var celdaIva = document.getElementById('ivaVenta-' + data.idVenta);
                         if (celdaTotal) celdaTotal.innerText = '$' + Math.round(data.total);
